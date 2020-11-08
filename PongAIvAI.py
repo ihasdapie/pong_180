@@ -24,10 +24,10 @@ from pygame.locals import *
 
 import math
 
+draw = False
+collisions = []
 
-
-
-
+ 
 white = [255, 255, 255]
 black = [0, 0, 0]
 clock = pygame.time.Clock()
@@ -140,6 +140,8 @@ class Ball:
 
 
     def move(self, paddles, table_size, move_factor):
+        global draw
+        
         moved = 0
         walls_Rects = [Rect((-100, -100), (table_size[0]+200, 100)),
                        Rect((-100, table_size[1]), (table_size[0]+200, 100))]
@@ -163,6 +165,7 @@ class Ball:
 
         for paddle in paddles:
             if self.frect.intersect(paddle.frect):
+                draw = True
                 if (paddle.facing == 1 and self.get_center()[0] < paddle.frect.pos[0] + paddle.frect.size[0]/2) or \
                 (paddle.facing == 0 and self.get_center()[0] > paddle.frect.pos[0] + paddle.frect.size[0]/2):
                     continue
@@ -260,7 +263,10 @@ def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
     else:
         return it.result
 
-def render(screen, paddles, ball, score, table_size):
+def render(screen, paddles, ball, score, table_size, tracking = False):
+    global draw
+    global collisions
+    
     screen.fill(black)
 
     pygame.draw.rect(screen, white, paddles[0].frect.get_rect())
@@ -268,6 +274,19 @@ def render(screen, paddles, ball, score, table_size):
 
     pygame.draw.circle(screen, white, (int(ball.get_center()[0]), int(ball.get_center()[1])),  int(ball.frect.size[0]/2), 0)
 
+    if tracking:
+        if draw:
+            collisions.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
+            draw = False 
+            
+        for coord in collisions:
+            pygame.draw.circle(screen, [255, 0, 0], coord,  int(ball.frect.size[0]/6), 0)
+            
+        '''
+        coord = (int(chaser_ai.get_predicted_pos[1]), int(chaser_ai.get_predicted_pos[1]))
+        pygame.draw.circle(screen, [0, 255, 0], coord,  int(ball.frect.size[0]/6), 0)
+        
+        '''
 
     pygame.draw.line(screen, white, [screen.get_width()/2, 0], [screen.get_width()/2, screen.get_height()])
 
@@ -309,6 +328,7 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
         if inv_move_factor > 0:
             for i in range(inv_move_factor):
                 ball.move(paddles, table_size, 1./inv_move_factor)
+                
         else:
             ball.move(paddles, table_size, 1)
         
