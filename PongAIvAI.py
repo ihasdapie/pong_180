@@ -404,10 +404,9 @@ def init_game():
     
     
     
-    import chaser_ai
-    
-    paddles[0].move_getter = chaser_ai.pong_ai
-    paddles[1].move_getter = chaser_ai.pong_ai
+    import bot1
+    paddles[0].move_getter = bot1.pongbot 
+    paddles[1].move_getter = bot1.pongbot 
     # paddles[1].move_getter = directions_from_input #chaser_ai.pong_ai
     
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
