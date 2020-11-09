@@ -24,7 +24,7 @@ from pygame.locals import *
 
 import math
 
-#import bot1
+import bot1
 import chaser_ai
 
 drawVert = False
