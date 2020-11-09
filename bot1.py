@@ -1,10 +1,12 @@
 from collections import deque
 
+import math
+
 ball_pos_history = [(1,2), (3,4), (4,5)] # [(x, y), (x,y) ..
 # just put some junk in there at first
 
 
-predicted_pos = 0
+predicted_pos = 133+7
 
 
 def get_velocity(p1, p2):
@@ -15,6 +17,9 @@ def get_velocity_flip(ph):
     # for checking for sign flip
     # in retrospect i should pre-calculate get_velocity
     # return (get_velocity(ph[-1], ph[-2])[0] < 0 and get_velocity(ph[-2], ph[-3])[0] > 0) or (get_velocity(ph[-1], ph[-2])[0] > 0 and get_velocity(ph[-2], ph[-3])[0] < 0)
+
+def if_flip(ph):
+    return (get_velocity(ph[-1], ph[-2])[0] < 0 and get_velocity(ph[-2], ph[-3])[0] > 0) or (get_velocity(ph[-1], ph[-2])[0] > 0 and get_velocity(ph[-2], ph[-3])[0] < 0)
 
 def predict_position(p1, p2, table_size):
     # returns distance between y = 0 and predicted final position when it "scores"
@@ -27,17 +32,32 @@ def predict_position(p1, p2, table_size):
     #   \-> p2
 
     v = get_velocity(p1, p2)
-    return (((table_size[0] - ((table_size[1]-p1[1])*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
+    #return (((table_size[0] - ((table_size[1]-p1[1])*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
     #Jack:
-    '''
+
     #maybe change to something like:
-    print(table_size)
     table_size = (407-33, 273-7)
     try:
-        return 7+(((table_size[0] - ((table_size[1]-p1[1])*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
+        v = list(v)
+        v[0] = abs(v[0])
+        #if no bounce
+        if abs(p1[1]*(v[0]/v[1])) > table_size[0]: return p1[1]+table_size[0]*(v[1]/v[0])
+
+        #number of bounces
+        n = (((table_size[0] - abs(p1[1]*(v[0]/v[1])))) // (table_size[1]*(v[0]/v[1]))) + 1
+
+        #cases
+        if n%2 == 0 and v[1] > 0: return 7 + (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
+
+        if n%2 == 0 and v[1] < 0: return 273 - (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
+
+        if n%2 == 1 and v[1] > 0: return 273 - (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
+
+        if n%2 == 1 and v[1] < 0: return 7 + (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
+
     except:
-        return p2[1]
-    '''
+        return predicted_pos
+
 
 def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
     global ball_pos_history # wish we had classes
@@ -71,13 +91,13 @@ def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
  y   v
     '''
     ball_pos_history.append(ball_frect.pos)
-    if get_velocity_flip(ball_pos_history): # could make slightly faster by calculating get_velocity in outside loop and passing v to func insteaad
+    if if_flip(ball_pos_history): # could make slightly faster by calculating get_velocity in outside loop and passing v to func insteaad
         predicted_pos = predict_position(ball_pos_history[-2], ball_pos_history[-1], table_size)
     return controller(predicted_pos, paddle_frect.pos[1])
 
 def controller(desired_pos, current_pos):
     # just something basic for now! move centroid of paddle to predicted pos
-    if current_pos < desired_pos:
+    if current_pos < desired_pos-35:
         return "down"
     else:
         return "up"
