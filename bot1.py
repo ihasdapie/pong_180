@@ -1,4 +1,36 @@
+from collections import deque
+
+ball_pos_history = deque() # [(x, y), (x,y) ..
+predicted_pos = 0
+
+
+def get_velocity(p1, p2):
+    return ((p2[0]-p1[0], p2[1]-p1[1]))
+def get_velocity_flip(ph):
+    # just need to find when it speeds up!
+    return get_velocity(ph[-1], ph[-2]) > get_velocity(ph[-2], ph[-3])
+    # for checking for sign flip
+    # in retrospect i should pre-calculate get_velocity 
+    # return (get_velocity(ph[-1], ph[-2])[0] < 0 and get_velocity(ph[-2], ph[-3])[0] > 0) or (get_velocity(ph[-1], ph[-2])[0] > 0 and get_velocity(ph[-2], ph[-3])[0] < 0)
+
+def predict_position(p1, p2, table_size):
+    # returns distance between y = 0 and predicted final position when it "scores"
+    #   /<-
+    #  /
+    # /
+    #. p1
+    # \
+    #  \
+    #   \-> p2
+
+    v = get_velocity(p1, p2)
+    return (((table_size[0] - ((table_size[1]-p1[1])*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
+
+
+
 def pong_ai(paddle_frect, other_paddle_frect, ball_frect, table_size):
+    global ball_pos_history # wish we had classes
+    global predicted_pos
     '''return "up" or "down", depending on which way the paddle should go to
     align its centre with the centre of the ball, assuming the ball will
     not be moving
@@ -26,10 +58,19 @@ def pong_ai(paddle_frect, other_paddle_frect, ball_frect, table_size):
      |             
      |
  y   v
-    '''          
-    
-    if paddle_frect.pos[1]+paddle_frect.size[1]/2 < ball_frect.pos[1]+ball_frect.size[1]/2:
-     return "down"
+    '''
+    ball_pos_history.append(ball_frect.pos)
+    if get_velocity_flip(ball_pos_history): # could make slightly faster by calculating get_velocity in outside loop and passing v to func insteaad
+        predicted_pos = predicted_pos(ball_pos_history[-2], ball_pos_history[-1], table_size)
+    return controller(predicted_pos, paddle_frect.pos[1])
+
+def controller(desired_pos, current_pos):
+    # just something basic for now! move centroid of paddle to predicted pos
+    if current_pos < desired_pos:
+        return "down"
     else:
-     return "up"
-    
+        return up
+
+
+
+
