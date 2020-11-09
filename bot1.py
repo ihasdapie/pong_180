@@ -29,11 +29,15 @@ def predict_position(p1, p2, table_size):
     v = get_velocity(p1, p2)
     return (((table_size[0] - ((table_size[1]-p1[1])*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
     #Jack:
-    # maybe change to something like:
-    # table_size = (407-33, 273-7)
-    # return 7+(((table_size[0] - ((table_size[1]-p1[1])*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
-
-
+    '''
+    #maybe change to something like:
+    print(table_size)
+    table_size = (407-33, 273-7)
+    try:
+        return 7+(((table_size[0] - ((table_size[1]-p1[1])*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
+    except:
+        return p2[1]
+    '''
 
 def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
     global ball_pos_history # wish we had classes

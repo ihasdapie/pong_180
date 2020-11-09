@@ -300,8 +300,8 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
         for coord in collisionsVert:
             pygame.draw.circle(screen, [255, 0, 0], coord,  int(ball.frect.size[0]/6), 0) 
         
-        #coord = (30, int(bot1.predicted_pos))
-        #pygame.draw.circle(screen, [0, 255, 0], coord,  int(ball.frect.size[0]/6), 0)
+        coord = (30, int(bot1.predicted_pos))
+        pygame.draw.circle(screen, [0, 255, 0], coord,  int(ball.frect.size[0]/6), 0)
         
         
 
@@ -422,7 +422,7 @@ def init_game():
     
     
     
-    paddles[0].move_getter = chaser_ai.pong_ai 
+    paddles[0].move_getter = bot1.pongbot 
     paddles[1].move_getter = chaser_ai.pong_ai 
     # paddles[1].move_getter = directions_from_input #chaser_ai.pong_ai
     
