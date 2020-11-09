@@ -13,7 +13,7 @@ def get_velocity_flip(ph):
     # just need to find when it speeds up!
     return get_velocity(ph[-1], ph[-2]) > get_velocity(ph[-2], ph[-3])
     # for checking for sign flip
-    # in retrospect i should pre-calculate get_velocity 
+    # in retrospect i should pre-calculate get_velocity
     # return (get_velocity(ph[-1], ph[-2])[0] < 0 and get_velocity(ph[-2], ph[-3])[0] > 0) or (get_velocity(ph[-1], ph[-2])[0] > 0 and get_velocity(ph[-2], ph[-3])[0] < 0)
 
 def predict_position(p1, p2, table_size):
@@ -28,6 +28,10 @@ def predict_position(p1, p2, table_size):
 
     v = get_velocity(p1, p2)
     return (((table_size[0] - ((table_size[1]-p1[1])*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
+    #Jack:
+    # maybe change to something like:
+    # table_size = (407-33, 273-7)
+    # return 7+(((table_size[0] - ((table_size[1]-p1[1])*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
 
 
 
@@ -37,28 +41,28 @@ def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
     '''return "up" or "down", depending on which way the paddle should go to
     align its centre with the centre of the ball, assuming the ball will
     not be moving
-    
+
     Arguments:
     paddle_frect: a rectangle representing the coordinates of the paddle
                   paddle_frect.pos[0], paddle_frect.pos[1] is the top-left
-                  corner of the rectangle. 
+                  corner of the rectangle.
                   paddle_frect.size[0], paddle_frect.size[1] are the dimensions
                   of the paddle along the x and y axis, respectively
-    
+
     other_paddle_frect:
                   a rectangle representing the opponent paddle. It is formatted
                   in the same way as paddle_frect
-    ball_frect:   a rectangle representing the ball. It is formatted in the 
+    ball_frect:   a rectangle representing the ball. It is formatted in the
                   same way as paddle_frect
     table_size:   table_size[0], table_size[1] are the dimensions of the table,
                   along the x and the y axis respectively
-    
+
     The coordinates look as follows:
-    
+
      0             x
      |------------->
      |
-     |             
+     |
      |
  y   v
     '''
