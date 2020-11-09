@@ -24,6 +24,11 @@ from pygame.locals import *
 
 import math
 
+#import bot1
+import chaser_ai
+
+drawVert = False
+collisionsVert = []
 draw = False
 collisions = []
 
@@ -141,6 +146,7 @@ class Ball:
 
     def move(self, paddles, table_size, move_factor):
         global draw
+        global drawVert
         
         moved = 0
         walls_Rects = [Rect((-100, -100), (table_size[0]+200, 100)),
@@ -150,6 +156,7 @@ class Ball:
             if self.frect.get_rect().colliderect(wall_rect):
                 c = 0
                 #print "in wall. speed: ", self.speed
+                drawVert = True
                 while self.frect.get_rect().colliderect(wall_rect):
                     self.frect.move_ip(-.1*self.speed[0], -.1*self.speed[1], move_factor)
                     c += 1 # this basically tells us how far the ball has traveled into the wall
@@ -266,6 +273,8 @@ def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
 def render(screen, paddles, ball, score, table_size, tracking = False):
     global draw
     global collisions
+    global drawVert
+    global collisionsVert
     
     screen.fill(black)
 
@@ -277,16 +286,24 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
     if tracking:
         if draw:
             collisions.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
+            #print("horizontal edge:",ball.get_center()[0])
             draw = False 
             
+        if drawVert:
+            collisionsVert.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
+            drawVert = False 
+            #print("Vertical edge:",ball.get_center())
+        
         for coord in collisions:
             pygame.draw.circle(screen, [255, 0, 0], coord,  int(ball.frect.size[0]/6), 0)
-            
-        '''
-        coord = (int(chaser_ai.get_predicted_pos[1]), int(chaser_ai.get_predicted_pos[1]))
-        pygame.draw.circle(screen, [0, 255, 0], coord,  int(ball.frect.size[0]/6), 0)
         
-        '''
+        for coord in collisionsVert:
+            pygame.draw.circle(screen, [255, 0, 0], coord,  int(ball.frect.size[0]/6), 0) 
+        
+        #coord = (30, int(bot1.predicted_pos))
+        #pygame.draw.circle(screen, [0, 255, 0], coord,  int(ball.frect.size[0]/6), 0)
+        
+        
 
     pygame.draw.line(screen, white, [screen.get_width()/2, 0], [screen.get_width()/2, screen.get_height()])
 
@@ -348,7 +365,7 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
 
 
 
-        render(screen, paddles, ball, score, table_size)
+        render(screen, paddles, ball, score, table_size, True)
 
 
 
@@ -404,9 +421,9 @@ def init_game():
     
     
     
-    import bot1
-    paddles[0].move_getter = bot1.pongbot 
-    paddles[1].move_getter = bot1.pongbot 
+    
+    paddles[0].move_getter = chaser_ai.pong_ai 
+    paddles[1].move_getter = chaser_ai.pong_ai 
     # paddles[1].move_getter = directions_from_input #chaser_ai.pong_ai
     
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
