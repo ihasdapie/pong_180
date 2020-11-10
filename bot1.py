@@ -43,7 +43,7 @@ def predict_position(p1, p2, table_size):
     #Jack:
 
     #maybe change to something like:
-    table_size = (407-33, 273-7)
+    table_size = (table_size[0]-20, table_size[1]-30)
     try:
         v = list(v)
         v[0] = abs(v[0])
