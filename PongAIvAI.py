@@ -265,7 +265,7 @@ def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
     it.start()
     it.join(timeout_duration)
     if it.isAlive():
-        print("TIMEOUT")
+        # print("TIMEOUT")
         return default
     else:
         return it.result
@@ -410,18 +410,13 @@ def init_game():
     turn_wait_rate = 3
     score_to_win = 10
 
-
     screen = pygame.display.set_mode(table_size)
     pygame.display.set_caption('PongAIvAI')
 
     paddles = [Paddle((20, table_size[1]/2), paddle_size, paddle_speed, max_angle,  1, timeout),
                Paddle((table_size[0]-20, table_size[1]/2), paddle_size, paddle_speed, max_angle, 0, timeout)]
     ball = Ball(table_size, ball_size, paddle_bounce, wall_bounce, dust_error, init_speed_mag)
-
-    
-    
-    
-    
+   
     paddles[0].move_getter = bot1.pongbot 
     paddles[1].move_getter = chaser_ai.pong_ai 
     # paddles[1].move_getter = directions_from_input #chaser_ai.pong_ai
@@ -436,8 +431,7 @@ def init_game():
     paddles[0].move_getter, paddles[1].move_getter = paddles[1].move_getter, paddles[0].move_getter
     
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
-    
-    
+
     
     pygame.quit()
 
