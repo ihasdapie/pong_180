@@ -41,10 +41,10 @@ def predict_position(p1, p2, table_size):
         v = list(v)
         v[0] = abs(v[0])
         #if no bounce
-        if abs(p1[1]*(v[0]/v[1])) > table_size[0]: return p1[1]+table_size[0]*(v[1]/v[0])
+        if abs((p1[1]-7)*(v[0]/v[1])) > table_size[0]: return p1[1]+table_size[0]*(v[1]/v[0])
 
         #number of bounces
-        n = (((table_size[0] - abs(p1[1]*(v[0]/v[1])))) // (table_size[1]*(v[0]/v[1]))) + 1
+        n = (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) // (table_size[1]*(v[0]/v[1]))) + 1
 
         #cases
         if n%2 == 0 and v[1] > 0: return 7 + (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
