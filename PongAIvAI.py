@@ -391,7 +391,7 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
         pygame.event.pump()
         clock.tick(30)
 
-    print(score)
+   #  print(score)
     # return
 
 def init_game():
