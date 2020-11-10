@@ -288,6 +288,7 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
             collisions.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
             #print("horizontal edge:",ball.get_center()[0])
             draw = False 
+            print("Number of Collisions:", len(collisions))
             
         if drawVert:
             collisionsVert.append((int(ball.get_center()[0]), int(ball.get_center()[1])))

@@ -98,7 +98,7 @@ def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
  y   v
     '''
     ball_pos_history.append(ball_frect.pos)
-    print(ball_pos_history)
+    #print(ball_pos_history)
     v = get_velocity(ball_pos_history[-2], ball_pos_history[-1]) # -'ve x velocity means going to the left
 
     if if_flip(ball_pos_history): # could make slightly faster by calculating get_velocity in outside loop and passing v to func insteaad
