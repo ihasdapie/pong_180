@@ -54,13 +54,13 @@ def predict_position(p1, p2, table_size):
         n = (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) // (table_size[1]*(v[0]/v[1]))) + 1
 
         #cases
-        if n%2 == 0 and v[1] > 0: return 7 + (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(abs(v[1])/v[0])
+        if n%2 == 0 and v[1] > 0: return 7 + (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*((v[1])/v[0])
 
-        if n%2 == 0 and v[1] < 0: return 273 - (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(abs(v[1])/v[0])
+        if n%2 == 0 and v[1] < 0: return 273 - (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*((v[1])/v[0])
 
-        if n%2 == 1 and v[1] > 0: return 273 - (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(abs(v[1])/v[0])
+        if n%2 == 1 and v[1] > 0: return 273 - (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*((v[1])/v[0])
 
-        if n%2 == 1 and v[1] < 0: return 7 + (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(abs(v[1])/v[0])
+        if n%2 == 1 and v[1] < 0: return 7 + (((table_size[0] - abs((p1[1]-7)*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*((v[1])/v[0])
 
     except:
         return predicted_pos
