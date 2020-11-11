@@ -173,11 +173,6 @@ def print_cache():
     print(cache)
     print(predicted_pos)
 
-
-# 1. figure out size
-# 2. Figure out max_angle
-
-
 def get_paddle_angle(y, pfrect, facing):
     # y = distance from centre
     max_angle = 45 
@@ -269,7 +264,6 @@ def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
         if (((v[0] < 0) and (paddle_frect.pos[0] < table_size[0]/2)) or ((v[0]>0) and (paddle_frect.pos[0]>table_size[0]/2))):
             predicted_pos = predict_position(ball_pos_history[-2], ball_pos_history[-1], table_size, ball_pos_history[-3][1])
             ideal_pos = get_opt_pose(paddle_frect, other_paddle_frect, ball_frect, v, predicted_pos, facing, table_size)
-            print(ideal_pos)
         #else:
         #   return pong_ai(paddle_frect, other_paddle_frect, ball_frect, table_size)
 
