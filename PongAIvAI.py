@@ -32,6 +32,7 @@ collisionsVert = []
 draw = False
 collisions = []
 
+ncolwall = 0
  
 white = [255, 255, 255]
 black = [0, 0, 0]
@@ -275,6 +276,7 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
     global collisions
     global drawVert
     global collisionsVert
+    global ncolwall
     
     screen.fill(black)
 
@@ -287,8 +289,9 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
         if draw:
             collisions.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
             #print("horizontal edge:",ball.get_center()[0])
-            draw = False 
-            print("Number of Collisions:", len(collisions))
+            draw = False
+            print("hit paddle:", len(collisions))
+            #print("actual:",ball.speed)
             
         if drawVert:
             collisionsVert.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
