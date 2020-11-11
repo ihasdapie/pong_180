@@ -41,7 +41,7 @@ def predict_position(p1, p2, table_size, h):
     # \
     #  \
     #   \-> p2
-    print("predictied height:", h)
+    #print("predictied height:", h)
     v = get_velocity(p1, p2)
     #print("calculated: ",v)
     #return (((table_size[0] - ((table_size[1]-p1[1])*(v[0]/v[1])))) % (table_size[1]*(v[0]/v[1])))*(v[1]/v[0])
