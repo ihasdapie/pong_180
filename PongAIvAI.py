@@ -24,9 +24,9 @@ from pygame.locals import *
 
 import math
 
-#import bot1
+import bot1
 import chaser_ai
-import bot1_v1 as bot1
+#import bot1_v1 as bot1
 
 drawVert = False
 collisionsVert = []
