@@ -290,13 +290,17 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
             collisions.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
             #print("horizontal edge:",ball.get_center()[0])
             draw = False
+            if ball.get_center()[0] > 100: print("actual_height:",ball.get_center()[1])
             print("hit paddle:", len(collisions))
+            print("--------------")
             #print("actual:",ball.speed)
             
         if drawVert:
             collisionsVert.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
             drawVert = False 
             #print("Vertical edge:",ball.get_center())
+        
+        pygame.draw.rect(screen, [0,0,255], Rect([405 , 7], [1, 265]))
         
         for coord in collisions:
             pygame.draw.circle(screen, [255, 0, 0], coord,  int(ball.frect.size[0]/6), 0)
