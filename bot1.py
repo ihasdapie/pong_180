@@ -3,6 +3,7 @@ import math
 ball_pos_history = [(1,2), (3,4), (4,5)] # [(x, y), (x,y) ..
 # just put some junk in there at first
 predicted_pos = 133+7
+ideal_pos = 133+7
 
 cache = {"v":[], "n":0, "d1":0, "a":0, "p1":0, "p2":0, "table_size":0, "case":0 }
 
@@ -172,11 +173,6 @@ def print_cache():
     print(cache)
     print(predicted_pos)
 
-
-# 1. figure out size
-# 2. Figure out max_angle
-
-
 def get_paddle_angle(y, pfrect, facing):
     # y = distance from centre
     max_angle = 45 
@@ -218,11 +214,15 @@ def get_opt_pose(pf, opf, bf, v, predpos, facing, table_size):
     # iterate through all possible collision points @ predpos 
     # find the offset to give furthest final distance from the opponent's paddle's current pos
     max_disp = 0
-    ideal_pos = 0
-    
     int_predpos = int(predpos)
-
-    for i in range(int_predpos-int(pf.size[1]/2), int_predpos+int(pf.size[1]/2)):
+    possible_ypos = (pf.size[1], table_size[1]-pf.size[1])
+    halfsize = int(pf.size[1]/2)
+    minbound = int_predpos - halfsize
+    maxbound = int_predpos + halfsize
+    minbound = possible_ypos[0] if minbound < possible_ypos[0] else minbound
+    maxbound = possible_ypos[1] if maxbound > possible_ypos[0] else maxbound
+    ideal_pos = predpos
+    for i in range(minbound, maxbound):
         ball = bf.copy()
         ball.pos = (pf.pos[0], predpos) # create a ball that is in line with our paddle
         paddle = pf.copy()
@@ -235,16 +235,17 @@ def get_opt_pose(pf, opf, bf, v, predpos, facing, table_size):
         if d > max_disp:
             max_disp = d
             ideal_pos = i
-    
-    return ideal_pos
+
+    print("generated ideal_pos= ", ideal_pos, " predicted_pos= ", predpos, " offset= ", abs(predpos-ideal_pos) )
+
+    #TODO: This currently only returns integer pos. Maybe do float pos too?
+    return ideal_pos - predicted_pos
 
 def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
     global ball_pos_history # wish we had classes
     global predicted_pos
     global state
-
-    
-
+    global ideal_pos
     facing = 1 if paddle_frect.pos[0] > table_size[0]/2 else 0
 
     ball_pos_history.append(ball_frect.pos)
@@ -262,7 +263,8 @@ def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
         # update predicted_pos only when opponent hits the ball
         if (((v[0] < 0) and (paddle_frect.pos[0] < table_size[0]/2)) or ((v[0]>0) and (paddle_frect.pos[0]>table_size[0]/2))):
             predicted_pos = predict_position(ball_pos_history[-2], ball_pos_history[-1], table_size, ball_pos_history[-3][1])
-            idealpos = get_opt_pose(paddle_frect, other_paddle_frect, ball_frect, v, predicted_pos, facing, table_size)
+            offset = get_opt_pose(paddle_frect, other_paddle_frect, ball_frect, v, predicted_pos, facing, table_size)
+            ideal_pos = predicted_pos + offset
 
         #else:
         #   return pong_ai(paddle_frect, other_paddle_frect, ball_frect, table_size)
@@ -273,7 +275,7 @@ def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
         return pong_ai(paddle_frect, other_paddle_frect, ball_frect, table_size)
     
     # return controller(predicted_pos, paddle_frect.pos[1], paddle_frect, other_paddle_frect, ball_frect, table_size)
-    return controller(idealpos, paddle_frect.pos[1], paddle_frect, other_paddle_frect, ball_frect, table_size)
+    return controller(ideal_pos, paddle_frect.pos[1], paddle_frect, other_paddle_frect, ball_frect, table_size)
 
 def controller(desired_pos, current_pos, paddle_frect, other_paddle_frect, ball_frect, table_size):
     # just something basic for now! move centroid of paddle to predicted pos
