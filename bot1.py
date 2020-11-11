@@ -56,8 +56,12 @@ def predict_position(p1, p2, table_size, h):
         if abs((p1[1])*(v[0]/v[1])) > table_size[0]:
             return p1[1]+7.5+table_size[0]*(v[1]/v[0])
 
+        d1 = v[0]/abs(v[1])
         #number of bounces
-        d1 = (p1[1])*(v[0]/abs(v[1]))
+        if v[1] > 0:
+            d1 = (table_size[1] - p1[1])*d1
+        else:
+            d1 = p1[1]*d1
         #print("d1 is :", d1)
 
         n = (table_size[0] - d1) // (table_size[1]*(v[0]/abs(v[1]))) + 1
