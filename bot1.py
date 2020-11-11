@@ -239,7 +239,7 @@ def get_opt_pose(pf, opf, bf, v, predpos, facing, table_size):
     print("generated ideal_pos= ", ideal_pos, " predicted_pos= ", predpos, " offset= ", abs(predpos-ideal_pos) )
 
     #TODO: This currently only returns integer pos. Maybe do float pos too?
-    return ideal_pos
+    return ideal_pos - predicted_pos
 
 def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
     global ball_pos_history # wish we had classes
@@ -263,7 +263,9 @@ def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
         # update predicted_pos only when opponent hits the ball
         if (((v[0] < 0) and (paddle_frect.pos[0] < table_size[0]/2)) or ((v[0]>0) and (paddle_frect.pos[0]>table_size[0]/2))):
             predicted_pos = predict_position(ball_pos_history[-2], ball_pos_history[-1], table_size, ball_pos_history[-3][1])
-            ideal_pos = get_opt_pose(paddle_frect, other_paddle_frect, ball_frect, v, predicted_pos, facing, table_size)
+            offset = get_opt_pose(paddle_frect, other_paddle_frect, ball_frect, v, predicted_pos, facing, table_size)
+            ideal_pos = predicted_pos + offset
+
         #else:
         #   return pong_ai(paddle_frect, other_paddle_frect, ball_frect, table_size)
 
