@@ -290,7 +290,7 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
             collisions.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
             #print("horizontal edge:",ball.get_center()[0])
             draw = False
-            #if ball.get_center()[0] > 100: print("deflection_height:",ball.get_center()[1])
+            #if ball.get_center()[0] q> 100: print("deflection_height:",ball.get_center()[1])
             print("hit paddle:", len(collisions))
             print("--------------")
             #print("actual:",ball.speed)
@@ -430,7 +430,8 @@ def init_game():
     ball = Ball(table_size, ball_size, paddle_bounce, wall_bounce, dust_error, init_speed_mag)
    
     paddles[0].move_getter = bot1.pongbot 
-    paddles[1].move_getter = chaser_ai.pong_ai 
+    #paddles[1].move_getter =  bot1.pongbot
+    paddles[1].move_getter = chaser_ai.pong_ai
     # paddles[1].move_getter = directions_from_input #chaser_ai.pong_ai
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
 
