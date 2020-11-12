@@ -275,7 +275,7 @@ def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
         return pong_ai(paddle_frect, other_paddle_frect, ball_frect, table_size)
     
     # return controller(predicted_pos, paddle_frect.pos[1], paddle_frect, other_paddle_frect, ball_frect, table_size)
-    return controller(predicted_pos, paddle_frect.pos[1], paddle_frect, other_paddle_frect, ball_frect, table_size)
+    return controller(ideal_pos, paddle_frect.pos[1], paddle_frect, other_paddle_frect, ball_frect, table_size)
 
 def controller(desired_pos, current_pos, paddle_frect, other_paddle_frect, ball_frect, table_size):
     # just something basic for now! move centroid of paddle to predicted pos

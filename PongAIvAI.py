@@ -26,7 +26,7 @@ import math
 
 import bot1
 import chaser_ai
-
+import anglebot
 drawVert = False
 collisionsVert = []
 draw = False
@@ -431,12 +431,10 @@ def init_game():
    
     paddles[0].move_getter = bot1.pongbot 
     #paddles[1].move_getter =  bot1.pongbot
-    paddles[1].move_getter = chaser_ai.pong_ai
+    paddles[1].move_getter = anglebot.pongbot
     # paddles[1].move_getter = directions_from_input #chaser_ai.pong_ai
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
-
-
-
+    
     screen.blit(pygame.font.Font(None, 32).render(str('SWITCHING SIDES'), True, white), [int(0.6*table_size[0])-8, 0])
     
     pygame.display.flip()

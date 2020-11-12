@@ -1,5 +1,15 @@
 import math
 
+
+from keras.layers import 
+
+def make_model():
+
+
+
+
+
+
 ball_pos_history = [(1,2), (3,4), (4,5)] # [(x, y), (x,y) ..
 # just put some junk in there at first
 predicted_pos = 133+7
