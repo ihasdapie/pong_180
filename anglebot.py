@@ -215,30 +215,33 @@ def get_opt_pose(pf, opf, bf, v, predpos, facing, table_size):
     # find the offset to give furthest final distance from the opponent's paddle's current pos
     max_disp = 0
     int_predpos = int(predpos)
-    possible_ypos = (pf.size[1], table_size[1]-pf.size[1])
+    possible_ypos = (int(pf.size[1]/2), table_size[1]-int((pf.size[1]/2)))
     halfsize = int(pf.size[1]/2)
     minbound = int_predpos - halfsize
     maxbound = int_predpos + halfsize
-    minbound = possible_ypos[0] if minbound < possible_ypos[0] else minbound
-    maxbound = possible_ypos[1] if maxbound > possible_ypos[0] else maxbound
+
+    minbound = int_predpos if minbound < predpos else minbound 
+    maxbound = table_size[1]-halfsize if maxbound > table_size[1]-halfsize else maxbound
+
     ideal_pos = predpos
-    for i in range(minbound, maxbound):
+    # this does it to the nearest 1/100 of a pixel. Maybe overkill. 
+    # can make faster by distributing calc across multiple frames?
+    print("Minbound:", minbound, "maxbound:", maxbound)
+    for i in range(2+minbound*10, 2-maxbound*10): # restrict range a little bit to be safe
+        i = i/10
         ball = bf.copy()
         ball.pos = (pf.pos[0], predpos) # create a ball that is in line with our paddle
         paddle = pf.copy()
         paddle.pos=(pf.pos[0], i) # create a paddle that is at a possible location
         v_ret = get_return_velocity_direction(ball, paddle , table_size, v, facing)
-        
         #step once forward with new velocity to get final displacement
         d = predict_position(ball.pos, (ball.pos[0]+v_ret[0], paddle.pos[1]+v_ret[1]), table_size, 0)
         d = abs(d-opf.pos[1]) # get distance between reflected ball and current other paddle pos on y axis
         if d > max_disp:
             max_disp = d
             ideal_pos = i
-
     print("generated ideal_pos= ", ideal_pos, " predicted_pos= ", predpos, " offset= ", abs(predpos-ideal_pos) )
 
-    #TODO: This currently only returns integer pos. Maybe do float pos too?
     return ideal_pos - predicted_pos
 
 def pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size):
@@ -286,15 +289,18 @@ def controller(desired_pos, current_pos, paddle_frect, other_paddle_frect, ball_
         return "up"
     '''
     #if desired_pos > 272.5
-
     #use chaser while in range
-    if 30 > abs(desired_pos-35 - current_pos):
-        return pong_ai(paddle_frect, other_paddle_frect, ball_frect, table_size)
+    # if 30 > abs(desired_pos-35 - current_pos):
+    #     return pong_ai(paddle_frect, other_paddle_frect, ball_frect, table_size)
+    if False:
+        pass
     else:
         if current_pos < desired_pos-35:
             return "down"
         else:
             return "up"
+
+
 
 def pong_ai(paddle_frect, other_paddle_frect, ball_frect, table_size):
     if paddle_frect.pos[1]+paddle_frect.size[1]/2 < ball_frect.pos[1]+ball_frect.size[1]/2:

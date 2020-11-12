@@ -311,9 +311,16 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
         coord = (30, int(bot1.predicted_pos))
         pygame.draw.circle(screen, [0, 255, 0], coord,  int(ball.frect.size[0]/6), 0)
         '''
-        coord = (0, int(bot1.predicted_pos))
-        pygame.draw.rect(screen, [0,225,0], Rect(coord, [440, 1]))
+        # predcoord = (0, int(bot1.predicted_pos))
+        # pygame.draw.rect(screen, [0,225,0], Rect(predcoord, [440, 1]))
+         
+        anglepred = (0, int(anglebot.predicted_pos))
+        pygame.draw.rect(screen, [255,255,0], Rect(anglepred, [440, 1]))
         
+        offsetcoord = (0, int(anglebot.ideal_pos))
+        pygame.draw.rect(screen, [255,0,0], Rect(offsetcoord, [440, 1]))
+        
+
         
 
     pygame.draw.line(screen, white, [screen.get_width()/2, 0], [screen.get_width()/2, screen.get_height()])
