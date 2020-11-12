@@ -299,7 +299,7 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
             collisionsVert.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
             drawVert = False 
             #print("Vertical edge:",ball.get_center())
-        
+        '''
         pygame.draw.rect(screen, [0,0,255], Rect([405 , 7], [1, 265]))
         
         for coord in collisions:
@@ -310,6 +310,9 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
         
         coord = (30, int(bot1.predicted_pos))
         pygame.draw.circle(screen, [0, 255, 0], coord,  int(ball.frect.size[0]/6), 0)
+        '''
+        coord = (0, int(bot1.predicted_pos))
+        pygame.draw.rect(screen, [0,225,0], Rect(coord, [440, 1]))
         
         
 
