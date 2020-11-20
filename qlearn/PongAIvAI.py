@@ -1,5 +1,5 @@
 #   PongAIvAI
-#   Authors: Michael Guerzhoy and Denis Begun, 2014-2020.
+#   Authors: Michael Guerzhoy and Denis Begun, 2014-2016.
 #   http://www.cs.toronto.edu/~guerzhoy/
 #   Email: guerzhoy at cs.toronto.edu
 #
@@ -17,6 +17,8 @@
 #   Parts of the code are based on T. S. Hayden Dennison's PongClone (2011)
 #   http://www.pygame.org/project-PongClone-1740-3032.html
 
+#   This code runs with Python 2 and requires PyGame for Python 2
+#   Download PyGame here: https://bitbucket.org/pygame/pygame/downloads
 
 
 import pygame, sys, time, random, os
@@ -24,24 +26,17 @@ from pygame.locals import *
 
 import math
 
-import bot1
-# import renderbot
-import anglebot
-drawVert = False
-collisionsVert = []
-draw = False
-collisions = []
 
-ncolwall = 0
- 
+
+
+
 white = [255, 255, 255]
 black = [0, 0, 0]
 clock = pygame.time.Clock()
 
 class fRect:
-    '''
-    pygame's Rect class can only be used to represent whole integer vertices, so we create a rectangle class that can have floating point coordinates
-    '''
+    """Like PyGame's Rect class, but with floating point coordinates"""
+
     def __init__(self, pos, size):
         self.pos = (pos[0], pos[1])
         self.size = (size[0], size[1])
@@ -66,7 +61,7 @@ class fRect:
             elif self.pos[i] > other_frect.pos[i]:
                 if self.pos[i] >= other_frect.pos[i] + other_frect.size[i]:
                     return 0
-        return 1#self.size > 0 and other_frect.size > 0
+        return 1 #self.size > 0 and other_frect.size > 0
 
 
 class Paddle:
@@ -81,10 +76,16 @@ class Paddle:
     def factor_accelerate(self, factor):
         self.speed = factor*self.speed
 
-
     def move(self, enemy_frect, ball_frect, table_size):
+        
+        # The program crashes if move_getter crashes. The runtime of 
+        # move_getter is not limited
         direction = self.move_getter(self.frect.copy(), enemy_frect.copy(), ball_frect.copy(), tuple(table_size))
-        #direction = timeout(self.move_getter, (self.frect.copy(), enemy_frect.copy(), ball_frect.copy(), tuple(table_size)), {}, self.timeout)
+        
+        # The program continues if move_getter crashes. The runtime of
+        # move_getter is limited
+        # direction = timeout(self.move_getter, (self.frect.copy(), enemy_frect.copy(), ball_frect.copy(), tuple(table_size)), {}, self.timeout)
+        
         if direction == "up":
             self.frect.move_ip(0, -self.speed)
         elif direction == "down":
@@ -120,10 +121,8 @@ class Paddle:
 class Ball:
     def __init__(self, table_size, size, paddle_bounce, wall_bounce, dust_error, init_speed_mag):
         rand_ang = (.4+.4*random.random())*math.pi*(1-2*(random.random()>.5))+.5*math.pi
-        #rand_ang = -110*math.pi/180
         speed = (init_speed_mag*math.cos(rand_ang), init_speed_mag*math.sin(rand_ang))
         pos = (table_size[0]/2, table_size[1]/2)
-        #pos = (table_size[0]/2 - 181, table_size[1]/2 - 105)
         self.frect = fRect((pos[0]-size[0]/2, pos[1]-size[1]/2), size)
         self.speed = speed
         self.size = size
@@ -146,9 +145,6 @@ class Ball:
 
 
     def move(self, paddles, table_size, move_factor):
-        global draw
-        global drawVert
-        
         moved = 0
         walls_Rects = [Rect((-100, -100), (table_size[0]+200, 100)),
                        Rect((-100, table_size[1]), (table_size[0]+200, 100))]
@@ -156,8 +152,7 @@ class Ball:
         for wall_rect in walls_Rects:
             if self.frect.get_rect().colliderect(wall_rect):
                 c = 0
-                #print "in wall. speed: ", self.speed
-                drawVert = True
+                
                 while self.frect.get_rect().colliderect(wall_rect):
                     self.frect.move_ip(-.1*self.speed[0], -.1*self.speed[1], move_factor)
                     c += 1 # this basically tells us how far the ball has traveled into the wall
@@ -165,15 +160,15 @@ class Ball:
                 r2 = 1+2*(random.random()-.5)*self.dust_error
 
                 self.speed = (self.wall_bounce*self.speed[0]*r1, -self.wall_bounce*self.speed[1]*r2)
+                
                 while c > 0 or self.frect.get_rect().colliderect(wall_rect):
                     self.frect.move_ip(.1*self.speed[0], .1*self.speed[1], move_factor)
                     c -= 1 # move by roughly the same amount as the ball had traveled into the wall
                 moved = 1
-                #print "out of wall, position, speed: ", self.frect.pos, self.speed
+                
 
         for paddle in paddles:
             if self.frect.intersect(paddle.frect):
-                draw = True
                 if (paddle.facing == 1 and self.get_center()[0] < paddle.frect.pos[0] + paddle.frect.size[0]/2) or \
                 (paddle.facing == 0 and self.get_center()[0] > paddle.frect.pos[0] + paddle.frect.size[0]/2):
                     continue
@@ -201,7 +196,7 @@ class Ball:
                 # Bona fide hack: enforce a lower bound on horizontal speed and disallow back reflection
                 if  v[0]*(2*paddle.facing-1) < 1: # ball is not traveling (a) away from paddle (b) at a sufficient speed
                     v[1] = (v[1]/abs(v[1]))*math.sqrt(v[0]**2 + v[1]**2 - 1) # transform y velocity so as to maintain the speed
-                    v[0] = (2*paddle.facing-1) # note that minimal horiz speed will be lower than we're used to, where it was 0.95 prior to increase by *1.2
+                    v[0] = (2*paddle.facing-1) # note that minimal horiz speed will be lower than we're used to, where it was 0.95 prior to the  increase by 1.2
 
                 #a bit hacky, prevent multiple bounces from accelerating
                 #the ball too much
@@ -210,28 +205,19 @@ class Ball:
                 else:
                     self.speed = (v[0], v[1])
                 self.prev_bounce = paddle
-                #print "transformed speed: ", self.speed
+                
 
                 while c > 0 or self.frect.intersect(paddle.frect):
-                    #print "move_ip()"
+                
                     self.frect.move_ip(.1*self.speed[0], .1*self.speed[1], move_factor)
-                    #print "ball position forward trace: ", self.frect.pos
+                    
                     c -= 1
-                #print "pos final: (" + str(self.frect.pos[0]) + "," + str(self.frect.pos[1]) + ")"
-                #print "speed x y: ", self.speed[0], self.speed[1]
-
+                
                 moved = 1
-                #print "out of paddle, speed: ", self.speed
-
-        # if we didn't take care of not driving the ball into a wall by backtracing above it could have happened that
-        # we would end up inside the wall here due to the way we do paddle bounces
-        # this happens because we backtrace (c++) using incoming velocity, but correct post-factum (c--) using new velocity
-        # the velocity would then be transformed by a wall hit, and the ball would end up on the dark side of the wall
+                
 
         if not moved:
             self.frect.move_ip(self.speed[0], self.speed[1], move_factor)
-            #print "moving "
-        #print "poition: ", self.frect.pos
 
 
 def directions_from_input(paddle_rect, other_paddle_rect, ball_rect, table_size):
@@ -266,18 +252,12 @@ def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
     it.start()
     it.join(timeout_duration)
     if it.isAlive():
-        # print("TIMEOUT")
+        print("TIMEOUT")
         return default
     else:
         return it.result
 
-def render(screen, paddles, ball, score, table_size, tracking = False):
-    global draw
-    global collisions
-    global drawVert
-    global collisionsVert
-    global ncolwall
-    
+def render(screen, paddles, ball, score, table_size):
     screen.fill(black)
 
     pygame.draw.rect(screen, white, paddles[0].frect.get_rect())
@@ -285,43 +265,6 @@ def render(screen, paddles, ball, score, table_size, tracking = False):
 
     pygame.draw.circle(screen, white, (int(ball.get_center()[0]), int(ball.get_center()[1])),  int(ball.frect.size[0]/2), 0)
 
-    if tracking:
-        if draw:
-            collisions.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
-            #print("horizontal edge:",ball.get_center()[0])
-            draw = False
-            #if ball.get_center()[0] q> 100: print("deflection_height:",ball.get_center()[1])
-            print("hit paddle:", len(collisions))
-            print("--------------")
-            #print("actual:",ball.speed)
-            
-        if drawVert:
-            collisionsVert.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
-            drawVert = False 
-            #print("Vertical edge:",ball.get_center())
-        '''
-        pygame.draw.rect(screen, [0,0,255], Rect([405 , 7], [1, 265]))
-        
-        for coord in collisions:
-            pygame.draw.circle(screen, [255, 0, 0], coord,  int(ball.frect.size[0]/6), 0)
-        
-        for coord in collisionsVert:
-            pygame.draw.circle(screen, [255, 0, 0], coord,  int(ball.frect.size[0]/6), 0) 
-        
-        coord = (30, int(bot1.predicted_pos))
-        pygame.draw.circle(screen, [0, 255, 0], coord,  int(ball.frect.size[0]/6), 0)
-        '''
-        # predcoord = (0, int(bot1.predicted_pos))
-        # pygame.draw.rect(screen, [0,225,0], Rect(predcoord, [440, 1]))
-         
-        anglepred = (0, int(anglebot.predicted_pos))
-        pygame.draw.rect(screen, [255,255,0], Rect(anglepred, [440, 1]))
-        
-        offsetcoord = (0, int(anglebot.ideal_pos))
-        pygame.draw.rect(screen, [255,0,0], Rect(offsetcoord, [440, 1]))
-        
-
-        
 
     pygame.draw.line(screen, white, [screen.get_width()/2, 0], [screen.get_width()/2, screen.get_height()])
 
@@ -363,7 +306,6 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
         if inv_move_factor > 0:
             for i in range(inv_move_factor):
                 ball.move(paddles, table_size, 1./inv_move_factor)
-                print(1./inv_move_factor)
         else:
             ball.move(paddles, table_size, 1)
         
@@ -383,7 +325,7 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
 
 
 
-        render(screen, paddles, ball, score, table_size, True)
+        render(screen, paddles, ball, score, table_size)
 
 
 
@@ -409,8 +351,8 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
         pygame.event.pump()
         clock.tick(30)
 
-   #  print(score)
-    # return
+    print(score)
+
 
 def init_game():
     table_size = (440, 280)
@@ -428,22 +370,26 @@ def init_game():
     turn_wait_rate = 3
     score_to_win = 10
 
+
     screen = pygame.display.set_mode(table_size)
     pygame.display.set_caption('PongAIvAI')
-
-    # paddles[0] is facing 1, this is at the very right.
-    # paddles [1] is facing 0
-
 
     paddles = [Paddle((20, table_size[1]/2), paddle_size, paddle_speed, max_angle,  1, timeout),
                Paddle((table_size[0]-20, table_size[1]/2), paddle_size, paddle_speed, max_angle, 0, timeout)]
     ball = Ball(table_size, ball_size, paddle_bounce, wall_bounce, dust_error, init_speed_mag)
-   
-    paddles[0].move_getter = bot1.pongbot 
-    #paddles[1].move_getter =  bot1.pongbot
-    # paddles[1].move_getter = anglebot.pongbot
-    # paddles[1].move_getter = directions_from_input #chaser_ai.pong_ai
-    paddles[1].move_getter = anglebot.pongbot
+
+    
+    
+    
+    import chaser_ai
+    
+    # To have The Chaser play against your AI engine, 
+    # store your code in student_ai.py, import student_ai, 
+    # and set paddles[1].move_getter to student_ai.pong_ai
+    paddles[0].move_getter = chaser_ai.pong_ai
+    paddles[1].move_getter = directions_from_input # chaser_ai.pong_ai
+                        
+                           
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
     
     screen.blit(pygame.font.Font(None, 32).render(str('SWITCHING SIDES'), True, white), [int(0.6*table_size[0])-8, 0])
@@ -454,7 +400,8 @@ def init_game():
     paddles[0].move_getter, paddles[1].move_getter = paddles[1].move_getter, paddles[0].move_getter
     
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
-
+    
+    
     
     pygame.quit()
 

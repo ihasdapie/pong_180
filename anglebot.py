@@ -215,7 +215,6 @@ def get_opt_pose(pf, opf, bf, v, predpos, facing, table_size):
     # find the offset to give furthest final distance from the opponent's paddle's current pos
     max_disp = 0
     int_predpos = int(predpos)
-    possible_ypos = (int(pf.size[1]/2), table_size[1]-int((pf.size[1]/2)))
     halfsize = int(pf.size[1]/2)
     minbound = int_predpos - halfsize
     maxbound = int_predpos + halfsize
@@ -227,7 +226,7 @@ def get_opt_pose(pf, opf, bf, v, predpos, facing, table_size):
     # this does it to the nearest 1/100 of a pixel. Maybe overkill. 
     # can make faster by distributing calc across multiple frames?
     print("Minbound:", minbound, "maxbound:", maxbound)
-    for i in range(2+minbound*10, 2-maxbound*10): # restrict range a little bit to be safe
+    for i in range(1+(minbound*10), 1-(maxbound*10)): # restrict range a little bit to be safe
         i = i/10
         ball = bf.copy()
         ball.pos = (pf.pos[0], predpos) # create a ball that is in line with our paddle
