@@ -3,10 +3,9 @@
 import tensorflow as tf
 import cv2
 import sys
-sys.path.append("Wrapped Game Code/")
 import pong_fun # whichever is imported "as game" will be used
 import dummy_game
-import tetris_fun as game
+import pong_fun as game
 import random
 import numpy as np
 from collections import deque
@@ -28,7 +27,7 @@ def weight_variable(shape):
 
 def bias_variable(shape):
     initial = tf.constant(0.01, shape = shape)
-    return tf.Variable(initial)
+   return tf.Variable(initial)
 
 def conv2d(x, W, stride):
     return tf.nn.conv2d(x, W, strides = [1, stride, stride, 1], padding = "SAME")

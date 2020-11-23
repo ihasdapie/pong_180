@@ -370,3 +370,10 @@ class fRect:
                     return 0
         return 1 #self.size > 0 and other_frect.size > 0
 
+
+
+
+
+
+
+

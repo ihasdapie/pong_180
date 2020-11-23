@@ -27,9 +27,6 @@ from pygame.locals import *
 import math
 
 
-
-
-
 white = [255, 255, 255]
 black = [0, 0, 0]
 clock = pygame.time.Clock()
@@ -291,11 +288,6 @@ def check_point(score, ball, table_size):
 
 def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, display):
     score = [0, 0]
-
-
-
-
-
     while max(score) < score_to_win:
         old_score = score[:]
         ball, score = check_point(score, ball, table_size)
@@ -401,7 +393,7 @@ def init_game():
     
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
     
-    
+   
     
     pygame.quit()
 
