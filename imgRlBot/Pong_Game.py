@@ -24,16 +24,11 @@ from pygame.locals import *
 
 import math
 
-import bot1
-# import renderbot
-import anglebot
-drawVert = False
-collisionsVert = []
-draw = False
-collisions = []
+import chaser_ai
+import bot1_v1
+import RLbot
 
-ncolwall = 0
- 
+
 white = [255, 255, 255]
 black = [0, 0, 0]
 clock = pygame.time.Clock()
@@ -82,8 +77,8 @@ class Paddle:
         self.speed = factor*self.speed
 
 
-    def move(self, enemy_frect, ball_frect, table_size):
-        direction = self.move_getter(self.frect.copy(), enemy_frect.copy(), ball_frect.copy(), tuple(table_size))
+    def move(self, enemy_frect, ball_frect, table_size, score):
+        direction = self.move_getter(self.frect.copy(), enemy_frect.copy(), ball_frect.copy(), tuple(table_size), score)
         #direction = timeout(self.move_getter, (self.frect.copy(), enemy_frect.copy(), ball_frect.copy(), tuple(table_size)), {}, self.timeout)
         if direction == "up":
             self.frect.move_ip(0, -self.speed)
@@ -146,9 +141,6 @@ class Ball:
 
 
     def move(self, paddles, table_size, move_factor):
-        global draw
-        global drawVert
-        
         moved = 0
         walls_Rects = [Rect((-100, -100), (table_size[0]+200, 100)),
                        Rect((-100, table_size[1]), (table_size[0]+200, 100))]
@@ -157,7 +149,6 @@ class Ball:
             if self.frect.get_rect().colliderect(wall_rect):
                 c = 0
                 #print "in wall. speed: ", self.speed
-                drawVert = True
                 while self.frect.get_rect().colliderect(wall_rect):
                     self.frect.move_ip(-.1*self.speed[0], -.1*self.speed[1], move_factor)
                     c += 1 # this basically tells us how far the ball has traveled into the wall
@@ -173,19 +164,18 @@ class Ball:
 
         for paddle in paddles:
             if self.frect.intersect(paddle.frect):
-                draw = True
                 if (paddle.facing == 1 and self.get_center()[0] < paddle.frect.pos[0] + paddle.frect.size[0]/2) or \
                 (paddle.facing == 0 and self.get_center()[0] > paddle.frect.pos[0] + paddle.frect.size[0]/2):
                     continue
-                
+
                 c = 0
-                
+
                 while self.frect.intersect(paddle.frect) and not self.frect.get_rect().colliderect(walls_Rects[0]) and not self.frect.get_rect().colliderect(walls_Rects[1]):
                     self.frect.move_ip(-.1*self.speed[0], -.1*self.speed[1], move_factor)
-                    
+
                     c += 1
                 theta = paddle.get_angle(self.frect.pos[1]+.5*self.frect.size[1])
-                
+
 
                 v = self.speed
 
@@ -266,62 +256,19 @@ def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
     it.start()
     it.join(timeout_duration)
     if it.isAlive():
-        # print("TIMEOUT")
+        print("TIMEOUT")
         return default
     else:
         return it.result
 
-def render(screen, paddles, ball, score, table_size, tracking = False):
-    global draw
-    global collisions
-    global drawVert
-    global collisionsVert
-    global ncolwall
-    
+def render(screen, paddles, ball, score, table_size):
     screen.fill(black)
 
-    pygame.draw.rect(screen, white, paddles[0].frect.get_rect())
+    pygame.draw.rect(screen, [0,255,0], paddles[0].frect.get_rect())
     pygame.draw.rect(screen, white, paddles[1].frect.get_rect())
 
     pygame.draw.circle(screen, white, (int(ball.get_center()[0]), int(ball.get_center()[1])),  int(ball.frect.size[0]/2), 0)
 
-    if tracking:
-        if draw:
-            collisions.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
-            #print("horizontal edge:",ball.get_center()[0])
-            draw = False
-            #if ball.get_center()[0] q> 100: print("deflection_height:",ball.get_center()[1])
-            print("hit paddle:", len(collisions))
-            print("--------------")
-            #print("actual:",ball.speed)
-            
-        if drawVert:
-            collisionsVert.append((int(ball.get_center()[0]), int(ball.get_center()[1])))
-            drawVert = False 
-            #print("Vertical edge:",ball.get_center())
-        '''
-        pygame.draw.rect(screen, [0,0,255], Rect([405 , 7], [1, 265]))
-        
-        for coord in collisions:
-            pygame.draw.circle(screen, [255, 0, 0], coord,  int(ball.frect.size[0]/6), 0)
-        
-        for coord in collisionsVert:
-            pygame.draw.circle(screen, [255, 0, 0], coord,  int(ball.frect.size[0]/6), 0) 
-        
-        coord = (30, int(bot1.predicted_pos))
-        pygame.draw.circle(screen, [0, 255, 0], coord,  int(ball.frect.size[0]/6), 0)
-        '''
-        # predcoord = (0, int(bot1.predicted_pos))
-        # pygame.draw.rect(screen, [0,225,0], Rect(predcoord, [440, 1]))
-         
-        anglepred = (0, int(anglebot.predicted_pos))
-        pygame.draw.rect(screen, [255,255,0], Rect(anglepred, [440, 1]))
-        
-        offsetcoord = (0, int(anglebot.ideal_pos))
-        pygame.draw.rect(screen, [255,0,0], Rect(offsetcoord, [440, 1]))
-        
-
-        
 
     pygame.draw.line(screen, white, [screen.get_width()/2, 0], [screen.get_width()/2, screen.get_height()])
 
@@ -356,18 +303,17 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
     while max(score) < score_to_win:
         old_score = score[:]
         ball, score = check_point(score, ball, table_size)
-        paddles[0].move(paddles[1].frect, ball.frect, table_size)
-        paddles[1].move(paddles[0].frect, ball.frect, table_size)
-        
+        paddles[0].move(paddles[1].frect, ball.frect, table_size, score)
+        paddles[1].move(paddles[0].frect, ball.frect, table_size, score)
+
         inv_move_factor = int((ball.speed[0]**2+ball.speed[1]**2)**.5)
         if inv_move_factor > 0:
             for i in range(inv_move_factor):
                 ball.move(paddles, table_size, 1./inv_move_factor)
-                print(1./inv_move_factor)
         else:
             ball.move(paddles, table_size, 1)
-        
-        
+
+
         if not display:
             continue
         if score != old_score:
@@ -383,7 +329,7 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
 
 
 
-        render(screen, paddles, ball, score, table_size, True)
+        render(screen, paddles, ball, score, table_size)
 
 
 
@@ -409,10 +355,13 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
         pygame.event.pump()
         clock.tick(30)
 
-   #  print(score)
+    #print(score)
     # return
 
-def init_game():
+def init_game(last_round = False):
+
+    print("Collecting Training Data %&%")
+
     table_size = (440, 280)
     paddle_size = (10, 70)
     ball_size = (15, 15)
@@ -428,37 +377,89 @@ def init_game():
     turn_wait_rate = 3
     score_to_win = 10
 
+
     screen = pygame.display.set_mode(table_size)
     pygame.display.set_caption('PongAIvAI')
-
-    # paddles[0] is facing 1, this is at the very right.
-    # paddles [1] is facing 0
-
 
     paddles = [Paddle((20, table_size[1]/2), paddle_size, paddle_speed, max_angle,  1, timeout),
                Paddle((table_size[0]-20, table_size[1]/2), paddle_size, paddle_speed, max_angle, 0, timeout)]
     ball = Ball(table_size, ball_size, paddle_bounce, wall_bounce, dust_error, init_speed_mag)
-   
-    paddles[0].move_getter = bot1.pongbot 
-    #paddles[1].move_getter =  bot1.pongbot
-    # paddles[1].move_getter = anglebot.pongbot
-    # paddles[1].move_getter = directions_from_input #chaser_ai.pong_ai
-    paddles[1].move_getter = anglebot.pongbot
+
+
+
+
+
+    paddles[0].move_getter = RLbot.pongbot
+    paddles[1].move_getter = chaser_ai.pong_ai #chaser_ai.pong_ai
+
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
-    
+    ball = Ball(table_size, ball_size, paddle_bounce, wall_bounce, dust_error, init_speed_mag)
     screen.blit(pygame.font.Font(None, 32).render(str('SWITCHING SIDES'), True, white), [int(0.6*table_size[0])-8, 0])
-    
+
     pygame.display.flip()
     clock.tick(4)
-    
+
     paddles[0].move_getter, paddles[1].move_getter = paddles[1].move_getter, paddles[0].move_getter
-    
+
+
+
+
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
 
-    
-    pygame.quit()
+    #Training starts here:
+    RLbot.train()
+    RLbot.save_training_sets()
+
+    if last_round:
+        RLbot.save_params()
+
 
 
 if __name__ == '__main__':
+
+
     pygame.init()
-    init_game()
+    training_episode= 20
+    for i in range(training_episode-1):
+        print("##############################")
+        print("Episode",i+1,"Training Start")
+        init_game()
+        print("Episode",i+1,"Training Ended")
+        print("##############################")
+
+    print("##############################")
+    print("Episode",training_episode,"Training Start")
+    init_game(True)
+    print("Episode",i+1,"Training Ended")
+    print("##############################")
+    pygame.quit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

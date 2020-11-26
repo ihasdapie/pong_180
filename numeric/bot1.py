@@ -171,8 +171,8 @@ def check_win(paddle_frect, other_paddle_frect, ball_frect):
 
 def print_cache():
     global predicted_pos
-    print(cache)
-    print(predicted_pos)
+    # print(cache)
+    # print(predicted_pos)
 
 def get_paddle_angle(y, pfrect, facing):
     # y = distance from centre
@@ -237,7 +237,7 @@ def get_opt_pose(pf, opf, bf, v, predpos, facing, table_size):
             max_disp = d
             ideal_pos = i
 
-    print("generated ideal_pos= ", ideal_pos, " predicted_pos= ", predpos, " offset= ", abs(predpos-ideal_pos) )
+    # print("generated ideal_pos= ", ideal_pos, " predicted_pos= ", predpos, " offset= ", abs(predpos-ideal_pos) )
 
     #TODO: This currently only returns integer pos. Maybe do float pos too?
     return ideal_pos - predicted_pos

@@ -225,7 +225,7 @@ def get_opt_pose(pf, opf, bf, v, predpos, facing, table_size):
     ideal_pos = predpos
     # this does it to the nearest 1/100 of a pixel. Maybe overkill. 
     # can make faster by distributing calc across multiple frames?
-    print("Minbound:", minbound, "maxbound:", maxbound)
+    # print("Minbound:", minbound, "maxbound:", maxbound)
     for i in range(1+(minbound*10), 1-(maxbound*10)): # restrict range a little bit to be safe
         i = i/10
         ball = bf.copy()
@@ -239,7 +239,7 @@ def get_opt_pose(pf, opf, bf, v, predpos, facing, table_size):
         if d > max_disp:
             max_disp = d
             ideal_pos = i
-    print("generated ideal_pos= ", ideal_pos, " predicted_pos= ", predpos, " offset= ", abs(predpos-ideal_pos) )
+    # print("generated ideal_pos= ", ideal_pos, " predicted_pos= ", predpos, " offset= ", abs(predpos-ideal_pos) )
 
     return ideal_pos - predicted_pos
 
