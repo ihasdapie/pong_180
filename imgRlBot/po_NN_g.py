@@ -50,6 +50,8 @@ def convert_advantage_factor(r_train, gamma):
             r[i] = gamma**(len(r)-i)
         r_train_modified.append(r)
     #Optional: normalize the reward
+    print("--------converted-advantage-factor-------")
+    print(r_train_modified[-1][1:10])
     return r_train_modified
 
 class mdlmngr:
