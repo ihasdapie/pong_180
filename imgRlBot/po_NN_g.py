@@ -11,8 +11,10 @@ import os
 tf.config.experimental_run_functions_eagerly(True)
 
 def modified_jack_loss(eps_reward):
+    # I think this might need to be gone over with because it reports a loss of 0 at a reward of 0... 
     def loss(y_true, y_pred):
         # prune pred b.c. of possible invalid nums (domain of log)
+        #     entr = label * -tf.log(logit) + (1-label) * -tf.log(1-logit)
         pred = keras.layers.Lambda(lambda x: keras.backend.clip(x,0.02,0.98))(y_pred)
         tmp_loss = keras.layers.Lambda(lambda x:-y_true*keras.backend.log(x)-(1-y_true)*(keras.backend.log(1-x)))(pred)
         policy_loss=keras.layers.Multiply()([tmp_loss,eps_reward])
@@ -81,6 +83,7 @@ class mdlmngr:
         # assuming path: ./mdls/l & ./mdls/r for left & right models, respectively. And left and right are of same num.
         # naming convention: {mdl_type}_num.h5
         paths = os.listdir('./mdls/l')
+        paths.remove()
         if len(paths) == 0:
             n = 1
         else:
@@ -93,9 +96,8 @@ class mdlmngr:
     def train_models(self, side, xround, yround, r_train, gamma):
         # take from pongbot, np.arrays
         # x, r are training values, r_train must be computed each time (convert advantage factor)
-        r_train = convert_advantage_factor(r_train, gamma)
-        print(len(r_train))
-        rround = r_train[-1] # we only need the most recent round...
+        r_train  = convert_advantage_factor(r_train, gamma)
+        rround = r_train[-1] # we only need the most recent round... 
         rround = np.expand_dims(rround, 1)
         yround = np.expand_dims(yround,1)
         print("-----SHAPES-------")

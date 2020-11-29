@@ -396,13 +396,6 @@ def init_game(last_round = False):
     
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
 
-    #Training starts here:
-    RLbot.train()
-    RLbot.save_training_sets()
-
-    if last_round:
-        RLbot.save_params()
-
 
 
 if __name__ == '__main__':
