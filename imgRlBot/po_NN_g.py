@@ -84,7 +84,7 @@ class mdlmngr:
         if len(paths) == 0:
             n = 1
         else:
-            n = max([re.findall("\d+", i)[0] for i in paths]) + 1 if len(paths)
+            n = max([int(re.findall("\d+", i)[0]) for i in paths]) + 1
         self.left_run_model.save('./mdls/l/r_{n}.h5'.format(n=str(n)))
         self.right_run_model.save('./mdls/r/r_{n}.h5'.format(n=str(n)))
         self.left_train_model.save('./mdls/l/t_{n}.h5'.format(n=str(n)))
