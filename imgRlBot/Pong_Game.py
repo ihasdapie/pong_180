@@ -17,8 +17,6 @@
 #   Parts of the code are based on T. S. Hayden Dennison's PongClone (2011)
 #   http://www.pygame.org/project-PongClone-1740-3032.html
 
-
-
 import pygame, sys, time, random, os
 from pygame.locals import *
 
@@ -26,8 +24,7 @@ import math
 
 import chaser_ai
 import bot1_v1
-import RLbot
-
+import kbot
 
 white = [255, 255, 255]
 black = [0, 0, 0]
@@ -373,7 +370,7 @@ def init_game(last_round = False):
     dust_error = 0.00
     init_speed_mag = 2
     timeout = 0.0003
-    clock_rate = 80
+    clock_rate =500
     turn_wait_rate = 3
     score_to_win = 10
 
@@ -385,11 +382,7 @@ def init_game(last_round = False):
                Paddle((table_size[0]-20, table_size[1]/2), paddle_size, paddle_speed, max_angle, 0, timeout)]
     ball = Ball(table_size, ball_size, paddle_bounce, wall_bounce, dust_error, init_speed_mag)
 
-
-
-
-
-    paddles[0].move_getter = RLbot.pongbot
+    paddles[0].move_getter = kbot.train_pongbot # later this should be trained against itself!
     paddles[1].move_getter = chaser_ai.pong_ai #chaser_ai.pong_ai
 
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
@@ -400,10 +393,7 @@ def init_game(last_round = False):
     clock.tick(4)
 
     paddles[0].move_getter, paddles[1].move_getter = paddles[1].move_getter, paddles[0].move_getter
-
-
-
-
+    
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
 
     #Training starts here:
@@ -416,8 +406,6 @@ def init_game(last_round = False):
 
 
 if __name__ == '__main__':
-
-
     pygame.init()
     training_episode= 20
     for i in range(training_episode-1):

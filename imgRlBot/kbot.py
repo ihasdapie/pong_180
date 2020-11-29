@@ -1,55 +1,25 @@
 import numpy as np
+import os
 import copy
 import cv2
-import conv_trainer as ct
 from utils import render_frame
-from collections import deque
-frame = 1
-cur_side = 'left'
-cur_reward = 0
-last_score = [0,0]
-reset = False
+from utils import gameData
+from tensorflow import keras
+import re
 
-train = []
-Ytrain = []
-Rtrain = []
-SCALE_FACTOR = 5
-TABLE_SIZE = (440, 280)
-
-class gameData:
-    def __init__(self):
-        self.img_list = deque()
-        self.xtrain = deque()
-        self.ytrain = deque()
-        self.cur_side = 'left'
-        self.last_score = [0,0]
-        self.cur_reward = 0
-        self.frame = 1
-        self.reset=False
-    def export_numpy(self):
-        return np.array(self.img_list), np.array(self.xtrain), np.array(self.ytrain)
-
-class mdlmngr:
-    def __init__(self, run_model, train_model):
-        self.run_model = run_model
-        self.train_model = train_model
-
+from po_NN_g import mdlmngr
 
 #############
 # Main block
+SCALE_FACTOR = 5
+TABLE_SIZE = (440, 280)
+GAMMA = 0.1
+MODEL_SHAPE = (TABLE_SIZE[0]//SCALE_FACTOR, TABLE_SIZE[1]//SCALE_FACTOR)
 gd = gameData()
 
 # load models...
-
-
-mm = mdlmngr(rm, tm)
+mm = mdlmngr.from_scratch(MODEL_SHAPE)
 #############
-
-
-
-
-
-
 
 
 def update_reward(score):
@@ -63,65 +33,58 @@ def update_reward(score):
         else:
             gd.cur_reward = score[1] - gd.last_score[1] + gd.last_score[0] - score[0]
 
-def train_pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size, score = []):
-    global gd, SCALE_FACTOR, mm
-    gd.cur_reward = check_side(paddle_frect)
-    update_reward(score)
-    half_paddle_width = paddle_frect.size[0]/2
-    half_paddle_height = paddle_frect.size[1]/2
-    half_ball_dim = ball_frect.size[0]/2
-    cur_img = render_frame(paddle_frect, other_paddle_frect, ball_frect, table_size, half_paddle_width, half_paddle_height, half_ball_dim, SCALE_FACTOR, table_size)
-    diff_img = cur_img - gd.img_list[-1] if len(gd.img_list) > 0 else cur_img # looking at the iamge difference tells us more
-    gd.img_list.append(diff_img)
-
-    action_prob = mm.run_model.predict(np.expand_dims(diff_img, axis=0), batch_size)[0][0]
-    action = np.random.choice(a=[2,3],size=1,p=[action_prob, 1-action_prob])
-
-    ret = 'up' if action == 2 else 'down'
-    y = 1 if ret == 'up' else 0
-    Ytrain.append(y)
-    
-    #update global variables
-    gd.frame += 1
-    gd.last_score = copy.deepcopy(score)
-    if reset:
-        #pass info to training
-        gd.xtrain.append(frame_info)
-        gd.Rtrain.append(gd.reward_info)
-        reset_round()
-        reset = False
-    return ret
-
 def check_side(paddle_frect):
     global gd
     if paddle_frect.pos[0] < 100:
         side = 'left'
     else:
         side = 'right'
-    if side != cur_side:
+    if side != gd.cur_side:
         gd.cur_side = side
         gd.last_score = [0,0]
 
-def reset_round():
-    global gd
-    gd.frame = 1
-    gd.cur_reward = 0
-    gd.frame_info = []
-    gd.reward_info = []
+def train_pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size, score = []):
+    global gd, SCALE_FACTOR, mm, GAMMA
+    check_side(paddle_frect)
+    update_reward(score)
+    
+    half_paddle_width = paddle_frect.size[0]/2
+    half_paddle_height = paddle_frect.size[1]/2
+    half_ball_dim = ball_frect.size[0]/2
 
-#training section
-def train():
-    global Xtrain
-    global Ytrain
-    global Rtrain
-    global params
-    print("---------------------------")
-    print("Training Data Collected!")
-    params = bt.train_bot(Xtrain, Ytrain, Rtrain, params)
-    print("Parameters Updated Successfully!")
+    cur_img = render_frame(paddle_frect, other_paddle_frect, ball_frect, table_size, half_paddle_width, half_paddle_height, half_ball_dim, SCALE_FACTOR)
+    diff_img = cur_img - gd.xround[-1] if len(gd.xround) > 0 else cur_img # looking at the iamge difference tells us more
 
+    move = mm.create_prediction(gd.cur_side, diff_img)
 
+    y = 1.0 if move == 'up' else 0.0
+    gd.yround.append(y)
+    gd.xround.append(diff_img)
+    gd.rround.append(gd.cur_reward)
 
+    #update global variables
+    gd.frame += 1
+    gd.last_score = copy.deepcopy(score)
 
+    if gd.reset:
+        # I suppose this should be run on another thread so that we don't have to wait inbetween rounds
+        # not saving game data right now... a problem for another day i suppose
+        gd.xtrain.append(gd.xround)
+        gd.ytrain.append(gd.yround)
+        gd.rtrain.append(gd.rround)
 
+        gd.getsamples()
+        
+        mm.train_models(gd.cur_side, *gd.convenience_export(), GAMMA) # must come after train data management b.c. takes rtrain
+        # clear vars
+        gd.frame = 1
+        gd.cur_reward = 1
+        gd.xround.clear()
+        gd.yround.clear()
+        gd.rround.clear()
 
+        gd.reset = False        
+        # run training on the correct bot 
+        mm.save_models() # shitty checkpointing
+
+    return move
