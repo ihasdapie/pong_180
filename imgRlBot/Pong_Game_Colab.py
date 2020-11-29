@@ -371,7 +371,7 @@ def init_game(last_round = False):
     dust_error = 0.00
     init_speed_mag = 2
     timeout = 0.0003
-    clock_rate = 2000
+    clock_rate = 10000
     turn_wait_rate = 3
     score_to_win = 10
 
@@ -410,6 +410,9 @@ if __name__ == '__main__':
         init_game()
         print("Episode",i+1,"Training Ended")
         print("##############################")
+        gd.refresh()
+
+
 
     print("##############################")
     print("Episode",training_episode,"Training Start")

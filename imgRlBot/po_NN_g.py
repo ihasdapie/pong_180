@@ -108,11 +108,11 @@ class mdlmngr:
         # there must be a way to do this without having to split it up like this...
         if side == 'right':
             self.right_train_model.fit(x=[xround, rround], y=yround, \
-                batch_size = 8, epochs=8, verbose=1, \
+                batch_size = 4, epochs=2, verbose=1, \
                 validation_split = 0.1, shuffle=True )
         else:
             self.left_train_model.fit(x=[xround, rround], y=yround, \
-                batch_size = 8, epochs=8, verbose=1, \
+                batch_size = 4, epochs=2, verbose=1, \
                 validation_split = 0.1, shuffle=True )
 
     def create_prediction(self, side, x):

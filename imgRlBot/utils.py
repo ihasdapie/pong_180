@@ -41,7 +41,22 @@ class gameData:
         self.cur_reward = 0
         self.frame = 1
         self.reset=False
-    
+
+    def refresh(self):
+        self.xtrain.clear()
+        self.ytrain.clear()
+        self.rtrain.clear()
+        self.xround.clear()
+        self.yround.clear()
+        self.rround.clear()
+
+        self.cur_side = 'left'
+        self.last_score = [0,0]
+        self.cur_reward = 0
+        self.frame = 1
+        self.reset=False
+
+ 
     def convenience_export(self):
         return (np.array(self.xround), np.array(self.yround), np.array(self.rtrain))
     
