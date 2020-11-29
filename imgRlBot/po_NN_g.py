@@ -81,7 +81,10 @@ class mdlmngr:
         # assuming path: ./mdls/l & ./mdls/r for left & right models, respectively. And left and right are of same num.
         # naming convention: {mdl_type}_num.h5
         paths = os.listdir('./mdls/l')
-        n = max([re.findall("\d+", i)[0] for i in paths]) + 1 if len(paths) == 0 else 1
+        if len(paths) == 0:
+            n = 1
+        else:
+            n = max([re.findall("\d+", i)[0] for i in paths]) + 1 if len(paths)
         self.left_run_model.save('./mdls/l/r_{n}.h5'.format(n=str(n)))
         self.right_run_model.save('./mdls/r/r_{n}.h5'.format(n=str(n)))
         self.left_train_model.save('./mdls/l/t_{n}.h5'.format(n=str(n)))
