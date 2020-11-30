@@ -24,7 +24,11 @@ import math
 
 import chaser_ai
 import bot1_v1
-import kbot
+from kbot import * # doing this so that we can access kbot's mdlmngr from the outer loop :')
+
+
+os.environ["SDL_VIDEODRIVER"] = "dummy" # Disable display for training on colab
+
 
 white = [255, 255, 255]
 black = [0, 0, 0]
@@ -293,10 +297,6 @@ def check_point(score, ball, table_size):
 def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, display):
     score = [0, 0]
 
-
-
-
-
     while max(score) < score_to_win:
         old_score = score[:]
         ball, score = check_point(score, ball, table_size)
@@ -319,23 +319,14 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
                 screen.blit(font.render("Left scores!", True, white, black), [0, 32])
             else:
                 screen.blit(font.render("Right scores!", True, white, black), [int(table_size[0]/2+20), 32])
-
-
             pygame.display.flip()
             clock.tick(turn_wait_rate)
-
-
-
         render(screen, paddles, ball, score, table_size)
-
-
 
         pygame.event.pump()
         keys = pygame.key.get_pressed()
         if keys[K_q]:
             return
-
-
 
         clock.tick(clock_rate)
 
@@ -356,7 +347,7 @@ def game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, sco
     # return
 
 def init_game(last_round = False):
-
+    global gd, mm, GAMMA
     print("Collecting Training Data %&%")
 
     table_size = (440, 280)
@@ -370,10 +361,9 @@ def init_game(last_round = False):
     dust_error = 0.00
     init_speed_mag = 2
     timeout = 0.0003
-    clock_rate =500
+    clock_rate = 10000
     turn_wait_rate = 3
-    score_to_win = 10
-
+    score_to_win = 1
 
     screen = pygame.display.set_mode(table_size)
     pygame.display.set_caption('PongAIvAI')
@@ -382,7 +372,7 @@ def init_game(last_round = False):
                Paddle((table_size[0]-20, table_size[1]/2), paddle_size, paddle_speed, max_angle, 0, timeout)]
     ball = Ball(table_size, ball_size, paddle_bounce, wall_bounce, dust_error, init_speed_mag)
 
-    paddles[0].move_getter = kbot.train_pongbot # later this should be trained against itself!
+    paddles[0].move_getter = kbot_pongbot # later this should be trained against itself!
     paddles[1].move_getter = chaser_ai.pong_ai #chaser_ai.pong_ai
 
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
@@ -398,19 +388,27 @@ def init_game(last_round = False):
 
 
 
+
 if __name__ == '__main__':
+    global mm, gd, GAMMA
     pygame.init()
-    training_episode= 20
+    training_episode= 1000
     for i in range(training_episode-1):
-        print("##############################")
         print("Episode",i+1,"Training Start")
         init_game()
+        mm.train_models(gd.cur_side, *gd.export_numpy_train(), GAMMA) # must come after train data management b.c. takes rtrain
+        mm.save_models() # shitty checkpointing
+        # gd.refresh()
         print("Episode",i+1,"Training Ended")
         print("##############################")
-
-    print("##############################")
+ 
     print("Episode",training_episode,"Training Start")
-    init_game(True)
+    init_game(last_round=True)
+    
+    mm.train_models(gd.cur_side, *gd.export_numpy_train(), GAMMA) # must come after train data management b.c. takes rtrain
+    mm.save_models() # shitty checkpointing
+    
+
     print("Episode",i+1,"Training Ended")
     print("##############################")
     pygame.quit()

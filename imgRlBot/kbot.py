@@ -6,7 +6,6 @@ from utils import render_frame
 from utils import gameData
 from tensorflow import keras
 import re
-
 from po_NN_g import mdlmngr
 
 #############
@@ -43,7 +42,7 @@ def check_side(paddle_frect):
         gd.cur_side = side
         gd.last_score = [0,0]
 
-def train_pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size, score = []):
+def kbot_pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size, score = []):
     global gd, SCALE_FACTOR, mm, GAMMA
     check_side(paddle_frect)
     update_reward(score)
@@ -69,13 +68,11 @@ def train_pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size, scor
     if gd.reset:
         # I suppose this should be run on another thread so that we don't have to wait inbetween rounds
         # not saving game data right now... a problem for another day i suppose
-        gd.xtrain.append(gd.xround)
-        gd.ytrain.append(gd.yround)
-        gd.rtrain.append(gd.rround)
-
+        gd.xtrain.append(copy.deepcopy(gd.xround))
+        gd.ytrain.append(copy.deepcopy(gd.yround))
+        gd.rtrain.append(copy.deepcopy(gd.rround))
         gd.getsamples()
         
-        mm.train_models(gd.cur_side, *gd.convenience_export(), GAMMA) # must come after train data management b.c. takes rtrain
         # clear vars
         gd.frame = 1
         gd.cur_reward = 1
@@ -85,6 +82,4 @@ def train_pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size, scor
 
         gd.reset = False        
         # run training on the correct bot 
-        mm.save_models() # shitty checkpointing
-
     return move

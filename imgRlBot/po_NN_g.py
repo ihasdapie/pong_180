@@ -7,7 +7,8 @@ import tensorflow as tf
 from tensorflow import keras
 import re
 import os
-
+from collections import deque
+from copy import deepcopy
 tf.config.experimental_run_functions_eagerly(True)
 
 def modified_jack_loss(eps_reward):
@@ -44,16 +45,24 @@ def make_models(input_shape):
     train_model.compile(optimizer='adam', loss=modified_jack_loss(reward_layer),)
    
     return train_model, run_model
-   
+
 def convert_advantage_factor(r_train, gamma):
+    # takes in r_train (list of lists), calculates adv_factor
+    # flattens list and then normalizes
+    flatten = lambda t: [item for sublist in t for item in sublist]
     r_train_modified = []
     for r in r_train:
-        for i in range(0, len(r)): # is it possible to do the advantage factors without the whole r_train stuff?
-            r[i] = gamma**(len(r)-i)
-        r_train_modified.append(r)
-    #Optional: normalize the reward
+        tmp = []
+        rlen = len(r)
+        for i in range(rlen): 
+            tmp.append(gamma**(rlen-i))
+        r_train_modified.append(tmp)
+    
+    r_train_modified = np.array(flatten(r_train_modified))
+    # normalize
+    r_train_modified -= np.mean(r_train_modified)
+    r_train_modified /= np.std(r_train_modified)
     print("--------converted-advantage-factor-------")
-    print(r_train_modified[-1][1:10])
     return r_train_modified
 
 class mdlmngr:
@@ -93,26 +102,38 @@ class mdlmngr:
         self.left_train_model.save('./mdls/l/t_{n}.h5'.format(n=str(n)))
         self.right_train_model.save('./mdls/r/t_{n}.h5'.format(n=str(n)))
 
-    def train_models(self, side, xround, yround, r_train, gamma):
+
+
+    def train_models(self, side, x_train, y_train, r_train, gamma):
         # take from pongbot, np.arrays
         # x, r are training values, r_train must be computed each time (convert advantage factor)
+        
+        flatten = lambda t: [item for sublist in t for item in sublist]
+        print("-------STARTING TRAINING------")
+
         r_train  = convert_advantage_factor(r_train, gamma)
-        rround = r_train[-1] # we only need the most recent round... 
-        rround = np.expand_dims(rround, 1)
-        yround = np.expand_dims(yround,1)
+        r_train = np.expand_dims(r_train, 1)
+        y_train = np.array(flatten(y_train))
+        y_train = np.expand_dims(y_train, 1)
+        x_train = np.array(flatten(x_train))
+
+        # why are these ragged?
+
         print("-----SHAPES-------")
-        print("X:", xround.shape)
-        print("Y:", yround.shape)
-        print("R:", rround.shape)
+        print("X:", x_train.shape)
+        print("Y:", y_train.shape)
+        print("R:", r_train.shape)
+        print(type(x_train), type(x_train), type(r_train))
+        print(type(x_train[0]), type(x_train[0]), type(r_train[0]))
 
         # there must be a way to do this without having to split it up like this...
         if side == 'right':
-            self.right_train_model.fit(x=[xround, rround], y=yround, \
-                batch_size = 4, epochs=2, verbose=1, \
+            self.right_train_model.fit(x=[x_train, r_train], y=y_train, \
+                batch_size = 8, epochs=4, verbose=1, \
                 validation_split = 0.1, shuffle=True )
         else:
-            self.left_train_model.fit(x=[xround, rround], y=yround, \
-                batch_size = 4, epochs=2, verbose=1, \
+            self.left_train_model.fit(x=[x_train, r_train], y=y_train, \
+                batch_size = 8, epochs=4, verbose=1, \
                 validation_split = 0.1, shuffle=True )
 
     def create_prediction(self, side, x):

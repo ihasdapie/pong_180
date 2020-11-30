@@ -55,10 +55,7 @@ class gameData:
         self.cur_reward = 0
         self.frame = 1
         self.reset=False
-
  
-    def convenience_export(self):
-        return (np.array(self.xround), np.array(self.yround), np.array(self.rtrain))
     
     def export_numpy_round(self):
         return (np.array(self.xround), np.array(self.yround), np.array(self.rround))
@@ -66,12 +63,16 @@ class gameData:
         return np.array(self.xtrain), np.array(self.ytrain), np.array(self.rtrain)
     
     def getsamples(self):
+        print("--SAMPLES FROM MOST RECENT ROUND--")
         print("X----------")
-        print(self.xround[-1])
+        # print("LEN: ", len(self.xtrain), self.xtrain[-1])
+        print("LEN: ", len(self.xtrain))
         print("y----------")
-        print(self.yround[-1])
+        # print("LEN: ", len(self.ytrain), self.ytrain[-1])
+        print("LEN: ", len(self.ytrain))
         print("r-----------")
-        print(self.rround[-1])
+        # print("LEN: ", len(self.rtrain), self.rtrain[-1])
+        print("LEN: ", len(self.rtrain))
 
 
     def save_train(self):
