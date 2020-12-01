@@ -11,16 +11,39 @@ from collections import deque
 from copy import deepcopy
 tf.config.experimental_run_functions_eagerly(True)
 
+# def loss(logit, label, reward, m):
+#     entr = label * -tf.log(logit) + (1-label) * -tf.log(1-logit)
+# return -tf.reduce_sum(reward * entr)
+# logit is pred_y, label is y_true, reward is reward...
+# l = y_true * log(y_pred)  + (1-y_true) * - log(1-y_pred)
+
 def modified_jack_loss(eps_reward):
+    print(eps_reward)
     # I think this might need to be gone over with because it reports a loss of 0 at a reward of 0... 
     def loss(y_true, y_pred):
         # prune pred b.c. of possible invalid nums (domain of log)
-        #     entr = label * -tf.log(logit) + (1-label) * -tf.log(1-logit)
         pred = keras.layers.Lambda(lambda x: keras.backend.clip(x,0.02,0.98))(y_pred)
-        tmp_loss = keras.layers.Lambda(lambda x:-y_true*keras.backend.log(x)-(1-y_true)*(keras.backend.log(1-x)))(pred)
+        tmp_loss = keras.layers.Lambda(lambda x: -y_true*keras.backend.log(x) + (y_true-1) * keras.backend.log(1-x))(pred)
         policy_loss=keras.layers.Multiply()([tmp_loss,eps_reward])
+        policy_loss = keras.backend.sum(policy_loss)
         return policy_loss
     return loss
+
+
+
+# 0
+
+
+# def modified_jack_loss(eps_reward):
+#     # I think this might need to be gone over with because it reports a loss of 0 at a reward of 0... 
+#     def loss(y_true, y_pred):
+#         # prune pred b.c. of possible invalid nums (domain of log)
+#         #     entr = label * -tf.log(logit) + (1-label) * -tf.log(1-logit)
+#         pred = keras.layers.Lambda(lambda x: keras.backend.clip(x,0.02,0.98))(y_pred)
+#         tmp_loss = keras.layers.Lambda(lambda x:-y_true*keras.backend.log(x)-(1-y_true)*(keras.backend.log(1-x)))(pred)
+#         policy_loss=keras.layers.Multiply()([tmp_loss,eps_reward])
+#         return policy_loss
+#     return loss
 
 
 def make_models(input_shape):
@@ -42,28 +65,55 @@ def make_models(input_shape):
     run_model = keras.models.Model(inputs=input_layer,outputs=output_layer)
     train_model = keras.models.Model(inputs=[input_layer, reward_layer], outputs=output_layer) 
     
-    train_model.compile(optimizer='adam', loss=modified_jack_loss(reward_layer),)
+    train_model.compile(optimizer='adam', loss=modified_jack_loss(reward_layer))
    
     return train_model, run_model
+
+# def convert_advantage_factor(r_train, gamma):
+#     # takes in r_train (list of lists), calculates adv_factor
+#     # flattens list and then normalizes
+#     flatten = lambda t: [item for sublist in t for item in sublist]
+#     r_train_modified = []
+#     for r in r_train:
+#         tmp = []
+#         rlen = len(r)
+#         for i in range(rlen): 
+#             tmp.append(gamma**(rlen-i))
+#         r_train_modified.append(tmp)
+    
+#     r_train_modified = np.array(flatten(r_train_modified))
+#     # normalize
+#     r_train_modified -= np.mean(r_train_modified)
+#     r_train_modified /= np.std(r_train_modified)
+#     print("--------converted-advantage-factor-------")
+#     return r_train_modified
+
 
 def convert_advantage_factor(r_train, gamma):
     # takes in r_train (list of lists), calculates adv_factor
     # flattens list and then normalizes
+
+    # loss taken from  https://github.com/thinkingparticle/deep_rl_pong_keras/blob/master/reinforcement_learning_pong_keras_policy_gradients.ipynb
+
+
     flatten = lambda t: [item for sublist in t for item in sublist]
     r_train_modified = []
-    for r in r_train:
-        tmp = []
-        rlen = len(r)
-        for i in range(rlen): 
-            tmp.append(gamma**(rlen-i))
-        r_train_modified.append(tmp)
-    
-    r_train_modified = np.array(flatten(r_train_modified))
+    tmp_r = 0
+    for rd in r_train:
+        for i in range(len(rd)-1, -1, -1):
+            if rd[i] == 0:
+                tmp_r = tmp_r * (1-gamma)
+                r_train_modified.append(tmp_r)
+            else:
+                tmp_r = rd[i]
+                r_train_modified.append(tmp_r)
+
+    r_train_modified = np.array(r_train_modified)
     # normalize
-    r_train_modified -= np.mean(r_train_modified)
-    r_train_modified /= np.std(r_train_modified)
+    # r_train_modified -= np.mean(r_train_modified)
+    # r_train_modified /= np.std(r_train_modified)
     print("--------converted-advantage-factor-------")
-    return r_train_modified
+    return np.flip(r_train_modified, 0)
 
 class mdlmngr:
     # a messy class to manage dealing with models & functions defined in po_NN_g
@@ -110,7 +160,7 @@ class mdlmngr:
         
         flatten = lambda t: [item for sublist in t for item in sublist]
         print("-------STARTING TRAINING------")
-
+        print(r_train)
         r_train  = convert_advantage_factor(r_train, gamma)
         r_train = np.expand_dims(r_train, 1)
         y_train = np.array(flatten(y_train))
@@ -123,10 +173,10 @@ class mdlmngr:
         print("X:", x_train.shape)
         print("Y:", y_train.shape)
         print("R:", r_train.shape)
-        print(type(x_train), type(x_train), type(r_train))
-        print(type(x_train[0]), type(x_train[0]), type(r_train[0]))
+        # print(type(x_train), type(x_train), type(r_train))
+        # print(type(x_train[0]), type(x_train[0]), type(r_train[0]))
+        print(r_train)
 
-        # there must be a way to do this without having to split it up like this...
         if side == 'right':
             self.right_train_model.fit(x=[x_train, r_train], y=y_train, \
                 batch_size = 8, epochs=4, verbose=1, \

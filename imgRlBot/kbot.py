@@ -12,7 +12,7 @@ from po_NN_g import mdlmngr
 # Main block
 SCALE_FACTOR = 5
 TABLE_SIZE = (440, 280)
-GAMMA = 0.1
+GAMMA = 0.995
 MODEL_SHAPE = (TABLE_SIZE[0]//SCALE_FACTOR, TABLE_SIZE[1]//SCALE_FACTOR)
 gd = gameData()
 
