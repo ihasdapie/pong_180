@@ -1,39 +1,42 @@
 ###################
 # Pong + Reinforcement Learning + CNNs
 ###################
-import numpy as np
 import math
-import tensorflow as tf
-from tensorflow import keras
-import re
 import os
+import re
 from collections import deque
 from copy import deepcopy
+
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+
 tf.config.experimental_run_functions_eagerly(True)
 
 # def loss(logit, label, reward, m):
 #     entr = label * -tf.log(logit) + (1-label) * -tf.log(1-logit)
 # return -tf.reduce_sum(reward * entr)
-# logit is pred_y, label is y_true, reward is reward...
-# l = y_true * log(y_pred)  + (1-y_true) * - log(1-y_pred)
 
 def modified_jack_loss(eps_reward):
-    # I think this might need to be gone over with because it reports a loss of 0 at a reward of 0... 
-    eps_reward = tf.math.reciprocal(eps_reward)
     def loss(y_true, y_pred):
         # prune pred b.c. of possible invalid nums (domain of log)
-        pred = keras.layers.Lambda(lambda x: keras.backend.clip(x,0.02,0.98))(y_pred)
+        pred = keras.layers.Lambda(lambda x: keras.backend.clip(x,0.01,0.99))(y_pred)
         # tmp_loss = keras.layers.Lambda(lambda x: -y_true*keras.backend.log(x) + (y_true-1) * keras.backend.log(1-x))(pred)
         tmp_loss = keras.layers.Lambda(lambda x:-y_true*keras.backend.log(x)-(1-y_true)*(keras.backend.log(1-x)))(pred)
+        # tf.print(eps_reward) # doesn't work because tf print can't print tensors???
         policy_loss=keras.layers.Multiply()([tmp_loss,eps_reward])
+        # why does this turn it into 0?
 
-        # policy_loss = keras.backend.sum(policy_loss)
         return policy_loss
     return loss
 
 
+# def modified_jack_loss(reward):
+#   def custom_loss(y_true, y_pred):
+#     return keras.backend.mean(keras.backend.square(y_pred - y_true) - keras.backend.square(y_true - reward), axis=-1)
 
-# 0
+#   return custom_loss
+# # 0
 
 
 # def modified_jack_loss(eps_reward):
@@ -189,7 +192,7 @@ class mdlmngr:
         if side == 'right':
             self.right_train_model.fit(x=[x_train, r_train], y=y_train, \
                 batch_size = 8, epochs=4, verbose=1, \
-                validation_split = 0.1, shuffle=True )
+                validation_split = 0.1, shuffle=True ) # sampleweight = r_train 
         else:
             self.left_train_model.fit(x=[x_train, r_train], y=y_train, \
                 batch_size = 8, epochs=4, verbose=1, \
@@ -204,5 +207,3 @@ class mdlmngr:
         action = np.random.choice(a=[2,3],size=1,p=[action_prob, 1-action_prob])
         ret = 'up' if action == 2 else 'down'
         return ret
-
-
