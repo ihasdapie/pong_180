@@ -18,18 +18,15 @@ tf.config.experimental_run_functions_eagerly(True)
 # l = y_true * log(y_pred)  + (1-y_true) * - log(1-y_pred)
 
 def modified_jack_loss(eps_reward):
-    print(eps_reward)
     # I think this might need to be gone over with because it reports a loss of 0 at a reward of 0... 
+    eps_reward = tf.math.reciprocal(eps_reward)
     def loss(y_true, y_pred):
         # prune pred b.c. of possible invalid nums (domain of log)
         pred = keras.layers.Lambda(lambda x: keras.backend.clip(x,0.02,0.98))(y_pred)
         # tmp_loss = keras.layers.Lambda(lambda x: -y_true*keras.backend.log(x) + (y_true-1) * keras.backend.log(1-x))(pred)
         tmp_loss = keras.layers.Lambda(lambda x:-y_true*keras.backend.log(x)-(1-y_true)*(keras.backend.log(1-x)))(pred)
-        # tmp. loss is pos.
-        # rewards has range -1, 1
-        # 1 being good
-        # want to 
         policy_loss=keras.layers.Multiply()([tmp_loss,eps_reward])
+
         # policy_loss = keras.backend.sum(policy_loss)
         return policy_loss
     return loss
@@ -71,7 +68,7 @@ def make_models(input_shape):
     train_model = keras.models.Model(inputs=[input_layer, reward_layer], outputs=output_layer) 
     
     # train_model.compile(optimizer='adam', loss=modified_jack_loss(reward_layer))
-     train_model.compile(optimizer='adam', loss=modified_jack_loss(reward_layer))
+    train_model.compile(optimizer='adam', loss=modified_jack_loss(reward_layer))
    
     return train_model, run_model
 
