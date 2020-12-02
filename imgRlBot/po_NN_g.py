@@ -68,10 +68,10 @@ def make_models(input_shape):
     reward_layer = keras.layers.Input(shape=(1,), name='reward_layer')
 
     run_model = keras.models.Model(inputs=input_layer,outputs=output_layer)
-    train_model = keras.models.Model(inputs=[input_layer, reward_layer], outputs=output_layer) 
+    train_model = keras.models.Model(inputs=input_layer, outputs=output_layer) 
     
     # train_model.compile(optimizer='adam', loss=modified_jack_loss(reward_layer))
-     train_model.compile(optimizer='adam', loss=modified_jack_loss(reward_layer))
+    train_model.compile(optimizer='adam', loss='binary_crossentropy')
    
     return train_model, run_model
 
@@ -190,13 +190,13 @@ class mdlmngr:
         print(r_train)
 
         if side == 'right':
-            self.right_train_model.fit(x=[x_train, r_train], y=y_train, \
+            self.right_train_model.fit(x=x_train , y=y_train, \
                 batch_size = 8, epochs=4, verbose=1, \
-                validation_split = 0.1, shuffle=True )
+                validation_split = 0.1, shuffle=True, sample_weight = r_train)
         else:
-            self.left_train_model.fit(x=[x_train, r_train], y=y_train, \
+            self.left_train_model.fit(x=x_train, y=y_train, \
                 batch_size = 8, epochs=4, verbose=1, \
-                validation_split = 0.1, shuffle=True )
+                validation_split = 0.1, shuffle=True, sample_weight = r_train)
 
     def create_prediction(self, side, x):
         if side == 'right':
