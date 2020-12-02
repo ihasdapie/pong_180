@@ -1,4 +1,5 @@
 import cv2
+import re
 from collections import deque
 import numpy as np
 import os
@@ -75,18 +76,29 @@ class gameData:
         print("LEN: ", len(self.rtrain))
 
 
-    def save_train(self):
+    def save_train_data(self):
         # lol rip this chokes on big matricis
         paths = os.listdir('./data/')
         if len(paths) == 0:
             n = 1
         else:
-            n = max([re.findall("\d+", i)[0] for i in paths]) + 1
+            n = max([int(re.findall("\d+", i)[0]) for i in paths]) + 1
         # format = ./data/{type}_num.txt
         # can be loaded again with np.loadtxt...
         x, y, r = self.export_numpy_train()
-        np.savetxt("./data/x_train_{n}".format(n=n), x)
-        np.savetxt("./data/x_train_{n}".format(n=n), y)
-        np.savetxt("./data/x_train_{n}".format(n=n), z)
+        np.save("./data/x_train_{n}".format(n=n), x)
+        np.save("./data/y_train_{n}".format(n=n), y)
+        np.save("./data/r_train_{n}".format(n=n), r)
 
+    def load_train_data(self):
+        paths = os.listdir('./data/')
+        if len(paths) == 0:
+            n = 1
+        else:
+            n = max([int(re.findall("\d+", i)[0]) for i in paths])
+        # format = ./data/{type}_num.txt
+        # can be loaded again with np.loadtxt..
+        self.xtrain = np.load("./data/x_train_{n}.npy".format(n=n) , allow_pickle=True)
+        self.ytrain = np.load("./data/y_train_{n}.npy".format(n=n), allow_pickle=True )
+        self.rtrain = np.load("./data/r_train_{n}.npy".format(n=n) , allow_pickle=True)
 

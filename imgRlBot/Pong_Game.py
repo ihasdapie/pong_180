@@ -395,10 +395,12 @@ if __name__ == '__main__':
     training_episode= 1000
     for i in range(training_episode-1):
         print("Episode",i+1,"Training Start")
-        init_game()
+        # init_game()
+        gd.load_train_data()
         mm.train_models(gd.cur_side, *gd.export_numpy_train(), GAMMA) # must come after train data management b.c. takes rtrain
-        mm.save_models() # shitty checkpointing
+        # mm.save_models() # shitty checkpointing
         # gd.refresh()
+        # gd.save_train_data()
         print("Episode",i+1,"Training Ended")
         print("##############################")
  
