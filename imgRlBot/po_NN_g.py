@@ -20,7 +20,7 @@ tf.config.experimental_run_functions_eagerly(True)
 def modified_jack_loss(eps_reward):
     def loss(y_true, y_pred):
         # prune pred b.c. of possible invalid nums (domain of log)
-        pred = keras.layers.Lambda(lambda x: keras.backend.clip(x,0.01,0.99))(y_pred)
+        pred = keras.layers.Lambda(lambda x: keras.backend.clip(x,0.001,0.999))(y_pred)
         # tmp_loss = keras.layers.Lambda(lambda x: -y_true*keras.backend.log(x) + (y_true-1) * keras.backend.log(1-x))(pred)
         tmp_loss = keras.layers.Lambda(lambda x:-y_true*keras.backend.log(x)-(1-y_true)*(keras.backend.log(1-x)))(pred)
         # tf.print(eps_reward) # doesn't work because tf print can't print tensors???
@@ -59,9 +59,9 @@ def make_models(input_shape):
     input_layer_plus_channel = keras.layers.Reshape((*(input_shape), 1))(input_layer)
     #------- Can modify model pretty easily here!
     conv1_layer = keras.layers.Conv2D(4, 8, activation='relu', strides=(3,3), padding='valid', use_bias=True, )(input_layer_plus_channel)
-    maxpool1_layer = keras.layers.MaxPool2D(pool_size=(2,2))(conv1_layer) # I'd imagine there is a lot of redundancy in the frames...
-    conv2_layer = keras.layers.Conv2D(8, 4, activation='relu', strides=(1,1), padding='valid', use_bias=True, )(maxpool1_layer) # Maybe just one CNN is enough
-    flatten1_layer = keras.layers.Flatten()(conv2_layer)
+    # maxpool1_layer = keras.layers.MaxPool2D(pool_size=(2,2))(conv1_layer) # I'd imagine there is a lot of redundancy in the frames...
+    # conv2_layer = keras.layers.Conv2D(8, 4, activation='relu', strides=(1,1), padding='valid', use_bias=True, )(maxpool1_layer) # Maybe just one CNN is enough
+    flatten1_layer = keras.layers.Flatten()(conv1_layer)
     #--------
     output_layer = keras.layers.Dense(1, activation="sigmoid", use_bias=True)(flatten1_layer) # To Bias or Not To Bias?
     
@@ -94,7 +94,7 @@ def convert_advantage_factor(r_train, gamma):
     # normalize
     r_train_modified -= np.mean(r_train_modified)
     r_train_modified /= np.std(r_train_modified)
-    print("--------converted-advantage-factor-------")
+    # print("--------converted-advantage-factor-------")
     # print(r_train_modified)
     return r_train_modified
 
@@ -179,7 +179,6 @@ class mdlmngr:
         y_train = np.expand_dims(y_train, 1)
         x_train = np.array(flatten(x_train))
 
-        # why are these ragged?
 
         print("-----SHAPES-------")
         print("X:", x_train.shape)
@@ -187,15 +186,15 @@ class mdlmngr:
         print("R:", r_train.shape)
         # print(type(x_train), type(x_train), type(r_train))
         # print(type(x_train[0]), type(x_train[0]), type(r_train[0]))
-        print(r_train)
+        # print(r_train)
 
         if side == 'right':
             self.right_train_model.fit(x=[x_train, r_train], y=y_train, \
-                batch_size = 8, epochs=4, verbose=1, \
+                batch_size = 8, epochs=2, verbose=1, \
                 validation_split = 0.1, shuffle=True ) # sampleweight = r_train 
         else:
             self.left_train_model.fit(x=[x_train, r_train], y=y_train, \
-                batch_size = 8, epochs=4, verbose=1, \
+                batch_size = 8, epochs=2, verbose=1, \
                 validation_split = 0.1, shuffle=True )
 
     def create_prediction(self, side, x):

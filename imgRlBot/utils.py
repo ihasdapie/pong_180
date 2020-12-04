@@ -44,12 +44,12 @@ class gameData:
         self.reset=False
 
     def refresh(self):
-        self.xtrain.clear()
-        self.ytrain.clear()
-        self.rtrain.clear()
-        self.xround.clear()
-        self.yround.clear()
-        self.rround.clear()
+        self.xtrain = deque()
+        self.ytrain = deque()
+        self.rtrain = deque()
+        self.xround = deque()
+        self.yround = deque()
+        self.rround = deque()
 
         self.cur_side = 'left'
         self.last_score = [0,0]
