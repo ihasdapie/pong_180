@@ -26,7 +26,6 @@ def modified_jack_loss(eps_reward):
         # tf.print(eps_reward) # doesn't work because tf print can't print tensors???
         policy_loss=keras.layers.Multiply()([tmp_loss,eps_reward])
         # why does this turn it into 0?
-
         return policy_loss
     return loss
 

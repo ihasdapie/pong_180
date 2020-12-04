@@ -17,7 +17,11 @@ gd = gameData()
 
 # load models...
 # mm = mdlmngr.from_scratch(MODEL_SHAPE)
-mm = mdlmngr.from_file(MODEL_SHAPE, 'mdls/r/r_9.h5', 'mdls/r/t_9.h5', 'mdls/l/r_9.h5', 'mdls/l/t_9.h5')
+mdl_no = 26
+mm = mdlmngr.from_file(MODEL_SHAPE, 'mdls/r/r_{n}.h5'.format(n=mdl_no), \
+                       'mdls/r/t_{n}.h5'.format(n=mdl_no), \
+                       'mdls/l/r_{n}.h5'.format(n=mdl_no), \
+                       'mdls/l/t_{n}.h5'.format(n=mdl_no))
 
 
 

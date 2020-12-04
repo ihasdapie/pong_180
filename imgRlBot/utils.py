@@ -27,6 +27,10 @@ def render_frame(p1_frect, p2_frect, b_frect, table_size, half_paddle_width, hal
     return img[::SCALE_FACTOR, ::SCALE_FACTOR].transpose() # cv2 and what we use use different conventions
     # 2D array!
 
+
+
+
+# I'm assuming that this class is hogging a ton of memory
 class gameData:
     def __init__(self):
         self.xtrain = deque()
@@ -44,6 +48,11 @@ class gameData:
         self.reset=False
 
     def refresh(self):
+        # it doesn't seam that re-declaring these variables
+        # is clearing it from memory and nor is running deque().clear()
+        # maybe try del?
+        del self.xtrain, self.ytrain, self.rtrain, self.xround, self.yround, self.rround
+
         self.xtrain = deque()
         self.ytrain = deque()
         self.rtrain = deque()
