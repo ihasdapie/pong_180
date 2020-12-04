@@ -141,10 +141,10 @@ class mdlmngr:
     @classmethod
     def from_file(cls, right_run_model, right_train_model, left_run_model, left_train_model): 
         # pass relative path strings
-        rrm = keras.models.load_model(right_run_model)
-        rtm = keras.models.load_model(right_train_model)
-        lrm = keras.models.load_model(left_train_model)
-        ltm = keras.models.load_model(left_run_model)
+        rrm = keras.models.load_model(right_run_model, custom_objects={'loss': modified_jack_loss})
+        rtm = keras.models.load_model(right_train_model, custom_objects={'loss':modified_jack_loss})
+        lrm = keras.models.load_model(left_train_model, custom_objects={'loss': modified_jack_loss})
+        ltm = keras.models.load_model(left_run_model, custom_objects={'loss': modified_jack_loss})
         return cls(rrm, rtm, lrm, ltm)
 
     def save_models(self):

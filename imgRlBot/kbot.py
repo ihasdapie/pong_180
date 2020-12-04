@@ -7,7 +7,6 @@ from utils import gameData
 from tensorflow import keras
 import re
 from po_NN_g import mdlmngr
-
 #############
 # Main block
 SCALE_FACTOR = 8
@@ -17,7 +16,12 @@ MODEL_SHAPE = (TABLE_SIZE[0]//SCALE_FACTOR, TABLE_SIZE[1]//SCALE_FACTOR)
 gd = gameData()
 
 # load models...
-mm = mdlmngr.from_scratch(MODEL_SHAPE)
+# mm = mdlmngr.from_scratch(MODEL_SHAPE)
+mm = mdlmngr.from_file('mdls/r/r_9.h5', 'mdls/r/t_9.h5', 'mdls/l/r_9.h5', 'mdls/l/t_9.h5')
+
+
+
+
 #############
 
 
