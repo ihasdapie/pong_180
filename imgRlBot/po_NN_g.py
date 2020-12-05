@@ -24,7 +24,8 @@ def modified_jack_loss(eps_reward):
         # tmp_loss = keras.layers.Lambda(lambda x: -y_true*keras.backend.log(x) + (y_true-1) * keras.backend.log(1-x))(pred)
         tmp_loss = keras.layers.Lambda(lambda x:-y_true*keras.backend.log(x)-(1-y_true)*(keras.backend.log(1-x)))(pred)
         # tf.print(eps_reward) # doesn't work because tf print can't print tensors???
-        policy_loss=keras.layers.Multiply()([tmp_loss,eps_reward])
+        policy_loss=keras.layers.Multiply()([tmp_loss,eps_reward]) # element-wise
+        # try adding 1 and seeing what the loss is  # dump into file?
         # why does this turn it into 0?
         return policy_loss
     return loss

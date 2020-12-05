@@ -363,7 +363,7 @@ def init_game(last_round = False):
     timeout = 0.0003
     clock_rate = 10000
     turn_wait_rate = 3
-    score_to_win = 1
+    score_to_win = 100
 
     screen = pygame.display.set_mode(table_size)
     pygame.display.set_caption('PongAIvAI')

@@ -54,10 +54,10 @@ def make_models(input_shape):
     # shape = (n_item, 10*FRAME_N, 1)
     input_layer = keras.layers.Input(shape=input_shape)
     #------- Can modify model pretty easily here!
-    fc1= keras.layers.Dense(units=input_shape[1], activation='relu', use_bias=True,)(input_layer)
-    fc2= keras.layers.Dense(units=50, activation='relu', use_bias=True,)(fc1)
+    fc1= keras.layers.Dense(units=input_shape[0], activation='relu', use_bias=True,)(input_layer)
+    # fc2= keras.layers.Dense(units=50, activation='relu', use_bias=True,)(fc1)
     # fc3= keras.layers.Dense(units=100, activation='relu', use_bias=True,)(fc2)
-    output_layer = keras.layers.Dense(1, activation="sigmoid", use_bias=True)(fc2)
+    output_layer = keras.layers.Dense(1, activation="sigmoid", use_bias=True)(fc1)
     reward_layer = keras.layers.Input(shape=(1,), name='reward_layer')
 
     run_model = keras.models.Model(inputs=input_layer,outputs=output_layer)
@@ -93,31 +93,6 @@ def convert_advantage_factor(r_train, gamma):
     return r_train_modified
 
 
-# def convert_advantage_factor(r_train, gamma):
-#     # takes in r_train (list of lists), calculates adv_factor
-#     # flattens list and then normalizes
-
-#     # loss taken from  https://github.com/thinkingparticle/deep_rl_pong_keras/blob/master/reinforcement_learning_pong_keras_policy_gradients.ipynb
-
-#     flatten = lambda t: [item for sublist in t for item in sublist]
-#     r_train_modified = []
-#     tmp_r = 0
-#     for rd in r_train:
-#         for i in range(len(rd)-1, -1, -1):
-#             if rd[i] == 0:
-#                 tmp_r = tmp_r * (1-gamma)
-#                 r_train_modified.append(tmp_r)
-#             else:
-#                 tmp_r = rd[i]
-#                 r_train_modified.append(tmp_r)
-
-#     r_train_modified = np.array(r_train_modified)
-#     # normalize
-#     # r_train_modified -= np.mean(r_train_modified)
-#     # r_train_modified /= np.std(r_train_modified)
-#     print("--------converted-advantage-factor-------")
-#     return np.flip(r_train_modified, 0)
-
 class mdlmngr:
     # a messy class to manage dealing with models & functions defined in po_NN_g
     def __init__(self, right_run_model, right_train_model, left_run_model, left_train_model): 
@@ -144,12 +119,6 @@ class mdlmngr:
         rrm.load_weights(right_run_model)
         return cls(rrm, rtm, lrm, ltm)
 
-        # rrm = keras.models.load_model(right_run_model, custom_objects={'loss': modified_jack_loss})
-        # rtm = keras.models.load_model(right_train_model, custom_objects={'loss':modified_jack_loss})
-        # lrm = keras.models.load_model(left_train_model, custom_objects={'loss': modified_jack_loss})
-        # ltm = keras.models.load_model(left_run_model, custom_objects={'loss': modified_jack_loss})
-        # return cls(rrm, rtm, lrm, ltm)
-
     def save_models(self):
         # assuming path: ./mdls/l & ./mdls/r for left & right models, respectively. And left and right are of same num.
         # naming convention: {mdl_type}_num.h5
@@ -166,8 +135,6 @@ class mdlmngr:
         self.right_run_model.save('./mdls/r/r_{n}.h5'.format(n=str(n)))
         self.left_train_model.save('./mdls/l/t_{n}.h5'.format(n=str(n)))
         self.right_train_model.save('./mdls/r/t_{n}.h5'.format(n=str(n)))
-
-
 
     def train_models(self, side, x_train, y_train, r_train, gamma):
         # take from pongbot, np.arrays
@@ -199,6 +166,11 @@ class mdlmngr:
             self.left_train_model.fit(x=[x_train, r_train], y=y_train, \
                 batch_size = 8, epochs=2, verbose=1, \
                 validation_split = 0.1, shuffle=True )
+        keras.backend.clear_session()
+
+
+
+
 
     def create_prediction(self, side, x):
         if side == 'right':
