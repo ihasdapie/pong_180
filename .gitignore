@@ -1,5 +1,5 @@
 __pycache__/
 *.pyc
 *.orig
-*.h5
+# *.h5
 *.npy

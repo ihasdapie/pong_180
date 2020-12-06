@@ -10,8 +10,9 @@ from copy import deepcopy
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-
+import tensorflow as tf
 tf.config.experimental_run_functions_eagerly(True)
+
 
 # def loss(logit, label, reward, m):
 #     entr = label * -tf.log(logit) + (1-label) * -tf.log(1-logit)
@@ -64,8 +65,8 @@ def make_models(input_shape):
     train_model = keras.models.Model(inputs=[input_layer, reward_layer], outputs=output_layer) 
     # train_model.compile(optimizer='adam', loss=modified_jack_loss(reward_layer))
     train_model.compile(optimizer='adam', loss=modified_jack_loss(reward_layer))
-    train_model.summary() # Why is this giving me an output where the layers are connected via [0][0] slices?
-    run_model.summary()
+    # train_model.summary() # Why is this giving me an output where the layers are connected via [0][0] slices?
+    # run_model.summary()
 
     return train_model, run_model
 
@@ -124,7 +125,7 @@ class mdlmngr:
         # naming convention: {mdl_type}_num.h5
         paths = os.listdir('./mdls/l')
         try:
-            paths.remove('.ipynb_checkpoint')
+            paths.remove('.ipynb_checkpoints')
         except:
             pass
         if len(paths) == 0:
@@ -171,14 +172,17 @@ class mdlmngr:
 
 
 
-
     def create_prediction(self, side, x):
         if side == 'right':
-            action_prob = self.right_run_model.predict(np.expand_dims(x, axis=0), batch_size=1)[0][0][0]
+            action_prob = self.right_run_model(np.expand_dims(x, axis=0), training=False)[0][0][0]
+            # action_prob = self.right_run_model.predict(np.expand_dims(x, axis=0), batch_size=1)[0][0][0]
         else:
-            action_prob = self.left_run_model.predict(np.expand_dims(x, axis=0), batch_size=1)[0][0][0]
-
-        # print(action_prob, "-------------")
-        action = np.random.choice(a=[2,3],size=1,p=[action_prob, 1-action_prob])
+            action_prob = self.right_run_model(np.expand_dims(x, axis=0), training=False)[0][0][0]
+            # action_prob = self.left_run_model.predict(np.expand_dims(x, axis=0), batch_size=1)[0][0][0]
+        action_prob = float(action_prob)
+        p = np.array([action_prob, 1-action_prob])
+        p /= sum(p)
+        action = np.random.choice(a=[2,3],size=1,p=p)
         ret = 'up' if action == 2 else 'down'
         return ret
+

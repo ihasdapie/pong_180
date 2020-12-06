@@ -93,6 +93,10 @@ class gameData:
     def save_train_data(self):
         # lol rip this chokes on big matricis
         paths = os.listdir('./data/')
+        try:
+            paths.remove('.ipynb_checkpoints')
+        except:
+            pass
         if len(paths) == 0:
             n = 1
         else:
@@ -106,6 +110,10 @@ class gameData:
 
     def load_train_data(self):
         paths = os.listdir('./data/')
+        try:
+            paths.remove('.ipynb_checkpoints')
+        except:
+            pass
         if len(paths) == 0:
             n = 1
         else:
@@ -182,6 +190,7 @@ def predict_position(p1, p2, table_size, h):
     except:
         print("exception")
         return predicted_pos
+
 
 
 

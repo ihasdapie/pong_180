@@ -26,7 +26,6 @@ import chaser_ai
 import bot1_v1
 from kbot import * # doing this so that we can access kbot's mdlmngr from the outer loop :')
 
-
 # os.environ["SDL_VIDEODRIVER"] = "dummy" # Disable display for training on colab
 
 
@@ -363,7 +362,7 @@ def init_game(last_round = False):
     timeout = 0.0003
     clock_rate = 10000
     turn_wait_rate = 3
-    score_to_win = 100
+    score_to_win = 10
 
     screen = pygame.display.set_mode(table_size)
     pygame.display.set_caption('PongAIvAI')
@@ -387,21 +386,22 @@ def init_game(last_round = False):
     game_loop(screen, paddles, ball, table_size, clock_rate, turn_wait_rate, score_to_win, 1)
 
 
-
+import keras.backend as K
+import tensorflow as tf
 import gc
 if __name__ == '__main__':
     global mm, gd, GAMMA
     pygame.init()
-    training_episode= 100
+    training_episode= 7
     for i in range(training_episode-1):
         print("Episode",i+1,"Training Start")
         init_game()
         # gd.load_train_data()
+        gd.save_train_data()
         mm.train_models(gd.cur_side, *gd.export_numpy_train(), GAMMA) # must come after train data management b.c. takes rtrain
         mm.save_models() # shitty checkpointing
         gd.refresh()
         gc.collect()
-        gd.save_train_data()
         print("Episode",i+1,"Training Ended")
         print("##############################")
  
@@ -415,6 +415,7 @@ if __name__ == '__main__':
     print("Episode",i+1,"Training Ended")
     print("##############################")
     pygame.quit()
+
 
 
 

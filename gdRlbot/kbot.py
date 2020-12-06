@@ -18,12 +18,18 @@ MODEL_SHAPE = (10*FRAME_N, 1) # from size of frame...
 gd = gameData()
 
 # load models...
-mm = mdlmngr.from_scratch(MODEL_SHAPE)
-mdl_no = 26
-# mm = mdlmngr.from_file(MODEL_SHAPE, 'mdls/r/r_{n}.h5'.format(n=mdl_no), \
-                       # 'mdls/r/t_{n}.h5'.format(n=mdl_no), \
-                       # 'mdls/l/r_{n}.h5'.format(n=mdl_no), \
-                       # 'mdls/l/t_{n}.h5'.format(n=mdl_no))
+# mm = mdlmngr.from_scratch(MODEL_SHAPE)
+paths = os.listdir('./mdls/l')
+try:
+    paths.remove('.ipynb_checkpoints')
+except:
+    pass
+mdl_no = max([int(re.findall("\d+", i)[0]) for i in paths])
+
+mm = mdlmngr.from_file(MODEL_SHAPE, 'mdls/r/r_{n}.h5'.format(n=mdl_no), \
+                        'mdls/r/t_{n}.h5'.format(n=mdl_no), \
+                        'mdls/l/r_{n}.h5'.format(n=mdl_no), \
+                        'mdls/l/t_{n}.h5'.format(n=mdl_no))
 
 
 #############
@@ -113,3 +119,4 @@ def kbot_pongbot(paddle_frect, other_paddle_frect, ball_frect, table_size, score
         gd.reset = False        
         # run training on the correct bot 
     return move
+
